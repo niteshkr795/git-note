@@ -70,11 +70,11 @@ export default function UploadPage() {
           <div className="bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#312e81] text-white rounded-2xl p-6 shadow-xs space-y-3">
             <div className="flex items-center gap-2 text-indigo-300 text-xs font-bold uppercase tracking-wider">
               <ShieldCheck className="w-4 h-4 text-[#34d399]" />
-              <span>Community Trust & Accolades</span>
+              <span>Community Trust</span>
             </div>
-            <h4 className="font-bold text-sm text-white">Earn Karma & Contributor Badges</h4>
+            <h4 className="font-bold text-sm text-white">Help College Classmates</h4>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Every verified contribution adds 50 points to your student profile and unlocks prestigious contributor badges.
+              Every shared document helps fellow students ace their exams and builds an open, centralized campus repository.
             </p>
             <div className="pt-2">
               <Link

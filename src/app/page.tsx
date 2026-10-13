@@ -1,259 +1,300 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useResources } from '@/context/ResourceContext';
-import { FilterState } from '@/types';
-import { SearchBar } from '@/components/SearchBar';
-import { FilterControls } from '@/components/FilterControls';
-import { ResourceGrid } from '@/components/ResourceGrid';
-import { Sidebar } from '@/components/Sidebar';
+import { supabase } from '@/lib/supabase';
 import {
-  Sparkles,
-  ArrowRight,
-  Flame,
-  CheckCircle2,
-  BookOpen,
+  FileText,
   GraduationCap,
-  Layers,
-  Award,
+  ClipboardList,
+  FlaskConical,
+  ArrowRight,
+  UploadCloud,
+  Search,
+  BookOpen,
+  Calendar,
+  Download,
+  CheckCircle2,
 } from 'lucide-react';
 
+interface RecentResource {
+  id: string;
+  title: string;
+  description: string | null;
+  resource_type: string;
+  subject_name: string;
+  semester: string;
+  academic_year: string;
+  file_format: string;
+  file_size: string | null;
+  download_count: number;
+  created_at: string;
+  uploader?: {
+    id: string;
+    full_name: string;
+    college: string;
+  } | null;
+}
+
+const CATEGORIES = [
+  {
+    title: 'Notes',
+    description: 'Lecture notes, revision summaries, and unit formulas',
+    href: '/search?type=Notes',
+    icon: FileText,
+    accent: 'text-indigo-600 bg-indigo-50 border-indigo-100',
+  },
+  {
+    title: 'PYQs',
+    description: 'Previous year semester examination question papers',
+    href: '/search?type=PYQs',
+    icon: GraduationCap,
+    accent: 'text-amber-600 bg-amber-50 border-amber-100',
+  },
+  {
+    title: 'Assignments',
+    description: 'Solved tutorial sheets, problem sets, and questions',
+    href: '/search?type=Assignments',
+    icon: ClipboardList,
+    accent: 'text-sky-600 bg-sky-50 border-sky-100',
+  },
+  {
+    title: 'Lab Manuals',
+    description: 'Practical files, experiment procedures, and code sheets',
+    href: '/search?type=Lab+Manuals',
+    icon: FlaskConical,
+    accent: 'text-emerald-600 bg-emerald-50 border-emerald-100',
+  },
+];
+
 export default function HomePage() {
-  const { resources } = useResources();
+  const [recentResources, setRecentResources] = useState<RecentResource[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Search & Filter state
-  const [filters, setFilters] = useState<FilterState>({
-    searchQuery: '',
-    semester: '',
-    subject: '',
-    resourceType: '',
-    academicYear: '',
-    sortBy: 'recent',
-  });
+  useEffect(() => {
+    async function loadRecent() {
+      try {
+        const { data, error } = await supabase
+          .from('resources')
+          .select(`
+            id,
+            title,
+            description,
+            resource_type,
+            subject_name,
+            semester,
+            academic_year,
+            file_format,
+            file_size,
+            download_count,
+            created_at,
+            uploader:profiles!uploader_id(
+              id,
+              full_name,
+              college
+            )
+          `)
+          .order('created_at', { ascending: false })
+          .limit(6);
 
-  const handleFilterChange = (updated: Partial<FilterState>) => {
-    setFilters((prev) => ({ ...prev, ...updated }));
-  };
-
-  const handleResetFilters = () => {
-    setFilters({
-      searchQuery: '',
-      semester: '',
-      subject: '',
-      resourceType: '',
-      academicYear: '',
-      sortBy: 'recent',
-    });
-  };
-
-  // Filter & Search processing
-  const filteredResources = useMemo(() => {
-    return resources
-      .filter((resource) => {
-        // Search text matching (title, subject, tags, description, uploader)
-        if (filters.searchQuery) {
-          const query = filters.searchQuery.toLowerCase().trim();
-          const matchesTitle = resource.title.toLowerCase().includes(query);
-          const matchesSubject = resource.subject.toLowerCase().includes(query);
-          const matchesDesc = resource.description.toLowerCase().includes(query);
-          const matchesUploader = resource.uploader.name.toLowerCase().includes(query);
-          const matchesTags = resource.tags.some((t) => t.toLowerCase().includes(query));
-          const matchesType = resource.resourceType.toLowerCase().includes(query);
-
-          if (!matchesTitle && !matchesSubject && !matchesDesc && !matchesUploader && !matchesTags && !matchesType) {
-            return false;
-          }
+        if (!error && data) {
+          const mapped = data.map((item: any) => ({
+            ...item,
+            uploader: Array.isArray(item.uploader) ? item.uploader[0] : item.uploader,
+          }));
+          setRecentResources(mapped);
         }
+      } catch (err) {
+        console.error('Error fetching recent resources:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-        // Semester filter
-        if (filters.semester && resource.semester !== filters.semester) {
-          return false;
-        }
-
-        // Subject filter
-        if (filters.subject && resource.subject !== filters.subject) {
-          return false;
-        }
-
-        // Resource Type filter
-        if (filters.resourceType && resource.resourceType !== filters.resourceType) {
-          return false;
-        }
-
-        // Academic Year filter
-        if (filters.academicYear && resource.academicYear !== filters.academicYear) {
-          return false;
-        }
-
-        return true;
-      })
-      .sort((a, b) => {
-        if (filters.sortBy === 'downloads') {
-          return b.downloadCount - a.downloadCount;
-        }
-        if (filters.sortBy === 'rating') {
-          return b.rating - a.rating;
-        }
-        if (filters.sortBy === 'title') {
-          return a.title.localeCompare(b.title);
-        }
-        // default: 'recent'
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
-  }, [resources, filters]);
-
-  // High-yield items for showcase
-  const topDownloaded = useMemo(() => {
-    return [...resources].sort((a, b) => b.downloadCount - a.downloadCount).slice(0, 3);
-  }, [resources]);
+    loadRecent();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#faf8ff]">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-[#0f172a] via-[#1e1b4b] to-[#2e1065] text-white pt-12 pb-16 px-4 sm:px-6 lg:px-8 border-b border-white/10 relative overflow-hidden">
-        {/* Subtle decorative background glowing meshes */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#4f46e5]/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-[#7c3aed]/15 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/15 text-indigo-300 text-xs font-semibold backdrop-blur-md shadow-xs">
-              <Sparkles className="w-3.5 h-3.5 text-[#818cf8]" />
-              <span>Academic Precision & Resource Exchange</span>
-            </div>
-
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-[-0.03em] text-white leading-tight">
-              Learn. Share. <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-violet-300 to-sky-300">Discover.</span>
+    <div className="min-h-screen bg-slate-50/50 flex flex-col justify-between">
+      <div>
+        {/* Hero Section */}
+        <section className="bg-white border-b border-slate-200">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center">
+            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight">
+              Your Academic Resources, <br className="hidden sm:inline" />
+              All in One Place.
             </h1>
 
-            <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-              Centralized Previous Year Papers (PYQs), professor-approved lecture notes, and lab manuals designed for collegiate academic momentum.
+            <p className="mt-4 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+              Discover and share notes, previous year question papers, assignments, and study materials
+              with your academic community.
             </p>
 
-            {/* Hero Search Input */}
-            <div className="pt-2 max-w-2xl mx-auto">
-              <SearchBar
-                value={filters.searchQuery}
-                onChange={(val) => handleFilterChange({ searchQuery: val })}
-                onClear={() => handleFilterChange({ searchQuery: '' })}
-                onSelectSuggestion={(sug) => handleFilterChange({ searchQuery: sug })}
-              />
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link
+                href="/search"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#4f46e5] text-white text-sm font-semibold hover:bg-[#4338ca] transition-colors shadow-xs"
+              >
+                <span>Explore Resources</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+
+              <Link
+                href="/upload"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 hover:text-slate-900 transition-colors"
+              >
+                <UploadCloud className="w-4 h-4 text-slate-500" />
+                <span>Upload Resource</span>
+              </Link>
             </div>
           </div>
+        </section>
 
-          {/* Academic Precision Counters */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto mt-12 pt-8 border-t border-white/10 text-center">
-            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-colors">
-              <span className="block text-2xl sm:text-3xl font-black text-[#818cf8] font-mono tracking-tight">12+</span>
-              <span className="text-xs text-slate-300 font-medium">B.Tech Subjects</span>
+        {/* Resource Categories Section */}
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 tracking-tight">Resource Categories</h2>
+              <p className="text-xs text-slate-500">Browse materials organized by academic format</p>
             </div>
-            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-colors">
-              <span className="block text-2xl sm:text-3xl font-black text-[#a78bfa] font-mono tracking-tight">8 Sem</span>
-              <span className="text-xs text-slate-300 font-medium">Curriculum Coverage</span>
-            </div>
-            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-colors">
-              <span className="block text-2xl sm:text-3xl font-black text-[#fbbf24] font-mono tracking-tight">100%</span>
-              <span className="text-xs text-slate-300 font-medium">Open Student Access</span>
-            </div>
-            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-colors">
-              <span className="block text-2xl sm:text-3xl font-black text-[#34d399] font-mono tracking-tight">Verified</span>
-              <span className="text-xs text-slate-300 font-medium">Peer Solutions</span>
-            </div>
+            <Link
+              href="/search"
+              className="text-xs font-semibold text-[#4f46e5] hover:text-[#4338ca] inline-flex items-center gap-1"
+            >
+              <span>View all in Search</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
-        </div>
-      </section>
 
-      {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-        {/* High-Yield Exam Favorites Highlight (Shown when no search/filters are active) */}
-        {!filters.searchQuery && !filters.resourceType && !filters.subject && (
-          <div className="mb-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-[#fffbeb] text-[#b45309] rounded-xl border border-[#fde68a]">
-                  <Flame className="w-5 h-5 fill-[#f59e0b]" />
-                </div>
-                <div>
-                  <h2 className="text-base sm:text-lg font-bold text-[#0f172a] tracking-tight">
-                    High-Yield Exam Favorites
-                  </h2>
-                  <p className="text-xs text-[#475569]">
-                    Top-downloaded study material and previous question papers this semester
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {topDownloaded.map((res) => (
-                <div
-                  key={res.id}
-                  className="bg-white rounded-2xl p-5 border border-[#e2e8f0] hover:border-[#cbd5e1] hover:shadow-[0_10px_20px_-3px_rgba(79,70,229,0.08)] transition-all flex flex-col justify-between group"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {CATEGORIES.map((cat) => {
+              const Icon = cat.icon;
+              return (
+                <Link
+                  key={cat.title}
+                  href={cat.href}
+                  className="group bg-white rounded-xl border border-slate-200 p-5 hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between"
                 >
                   <div>
-                    <div className="flex items-center justify-between text-xs mb-2.5">
-                      <span className="font-semibold text-[#b45309] bg-[#fffbeb] border border-[#fde68a] px-2.5 py-0.5 rounded-full text-[11px]">
-                        {res.resourceType}
-                      </span>
-                      <span className="text-slate-500 font-mono text-[11px]">
-                        {res.downloadCount} downloads
-                      </span>
+                    <div
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center border mb-3 ${cat.accent}`}
+                    >
+                      <Icon className="w-5 h-5" />
                     </div>
-
-                    <Link href={`/resources/${res.id}`} className="group-hover:text-[#4f46e5] transition-colors">
-                      <h4 className="font-bold text-[#0f172a] text-sm line-clamp-2 mb-1.5 tracking-tight">
-                        {res.title}
-                      </h4>
-                    </Link>
-
-                    <p className="text-xs text-[#475569] line-clamp-2 leading-relaxed">
-                      {res.subject} • {res.semester}
+                    <h3 className="font-semibold text-slate-900 text-sm group-hover:text-[#4f46e5] transition-colors">
+                      {cat.title}
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                      {cat.description}
                     </p>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-[#f1f5f9] flex items-center justify-between text-xs">
-                    <span className="text-[11px] text-slate-400">By {res.uploader.name}</span>
-                    <Link
-                      href={`/resources/${res.id}`}
-                      className="text-[#4f46e5] hover:text-[#4338ca] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-all"
-                    >
-                      <span>Study Now</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-medium text-slate-500 group-hover:text-[#4f46e5]">
+                    <span>Browse {cat.title}</span>
+                    <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
                   </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Recently Added Resources Section */}
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 tracking-tight">Recently Added</h2>
+              <p className="text-xs text-slate-500">Latest academic uploads from verified students</p>
+            </div>
+            {recentResources.length > 0 && (
+              <Link
+                href="/search"
+                className="text-xs font-semibold text-[#4f46e5] hover:text-[#4338ca] inline-flex items-center gap-1"
+              >
+                <span>Browse all</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            )}
+          </div>
+
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-xl border border-slate-200 p-5 space-y-3 animate-pulse"
+                >
+                  <div className="h-4 w-24 bg-slate-100 rounded" />
+                  <div className="h-5 w-3/4 bg-slate-200 rounded" />
+                  <div className="h-3 w-1/2 bg-slate-100 rounded" />
+                  <div className="pt-3 border-t border-slate-100 h-4 w-full bg-slate-50 rounded" />
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : recentResources.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {recentResources.map((res) => (
+                <Link
+                  key={res.id}
+                  href={`/resources/${res.id}`}
+                  className="group bg-white rounded-xl border border-slate-200 p-5 hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between text-xs mb-2">
+                      <span className="font-semibold text-xs text-[#4f46e5] bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                        {res.resource_type}
+                      </span>
+                      <span className="text-slate-400 font-mono text-[11px]">{res.semester}</span>
+                    </div>
 
-        {/* 12-Column Layout: Sidebar & Resource Grid */}
-        <div className="flex gap-8 items-start">
-          {/* Desktop Category Sidebar */}
-          <Sidebar
-            activeTypeFilter={filters.resourceType}
-            onSelectType={(type) => handleFilterChange({ resourceType: type })}
-          />
+                    <h3 className="font-semibold text-slate-900 text-sm leading-snug group-hover:text-[#4f46e5] transition-colors line-clamp-2">
+                      {res.title}
+                    </h3>
 
-          {/* Right Main Grid Container */}
-          <div className="flex-1 min-w-0 space-y-6">
-            {/* Filter Controls Bar */}
-            <FilterControls
-              filters={filters}
-              onChange={handleFilterChange}
-              onReset={handleResetFilters}
-              totalResults={filteredResources.length}
-            />
+                    <p className="text-xs text-slate-500 mt-1 line-clamp-1">
+                      {res.subject_name} • {res.academic_year}
+                    </p>
+                  </div>
 
-            {/* Results Grid */}
-            <ResourceGrid
-              resources={filteredResources}
-              onResetFilters={handleResetFilters}
-              emptyType="search"
-            />
-          </div>
-        </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+                    <span className="truncate max-w-[160px]">
+                      {res.uploader?.full_name || 'Student Contributor'}
+                    </span>
+                    <span className="font-medium text-slate-600">{res.file_format || 'PDF'}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            /* Simple, clean, natural empty state */
+            <div className="bg-white border border-slate-200 rounded-xl p-8 sm:p-12 text-center max-w-lg mx-auto">
+              <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center mx-auto mb-3">
+                <BookOpen className="w-6 h-6 stroke-[1.75]" />
+              </div>
+              <h3 className="text-base font-semibold text-slate-900">No resources uploaded yet</h3>
+              <p className="text-xs text-slate-500 mt-1.5 max-w-sm mx-auto leading-relaxed">
+                Be the first to share lecture notes, previous question papers, or lab manuals with your
+                classmates, or search existing course materials.
+              </p>
+              <div className="mt-5 flex items-center justify-center gap-3">
+                <Link
+                  href="/upload"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#4f46e5] text-white text-xs font-semibold hover:bg-[#4338ca] transition-colors"
+                >
+                  <UploadCloud className="w-3.5 h-3.5" />
+                  <span>Upload Resource</span>
+                </Link>
+                <Link
+                  href="/search"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors"
+                >
+                  <Search className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Explore Search</span>
+                </Link>
+              </div>
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

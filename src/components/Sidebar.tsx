@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useResources } from '@/context/ResourceContext';
 import {
   Compass,
   FileQuestion,
@@ -25,13 +26,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeTypeFilter,
   onSelectType,
 }) => {
+  const { resources } = useResources();
+
+  const getCount = (type: string) => {
+    if (!type) return resources.length;
+    return resources.filter((r) => r.resourceType === type).length;
+  };
+
   const mainNav = [
-    { label: 'All Collections', type: '', icon: Compass, count: '48+' },
-    { label: 'Past Papers (PYQs)', type: 'PYQ', icon: FileQuestion, count: '18' },
-    { label: 'Verified Class Notes', type: 'Notes', icon: FileText, count: '14' },
-    { label: 'Lab Manuals & Code', type: 'Lab Manual', icon: FlaskConical, count: '8' },
-    { label: 'Assignments & Solns', type: 'Assignment', icon: BookMarked, count: '5' },
-    { label: 'Revision Cheat Sheets', type: 'Study Material', icon: Sparkles, count: '3' },
+    { label: 'All Collections', type: '', icon: Compass, count: getCount('') },
+    { label: 'Past Papers (PYQs)', type: 'PYQ', icon: FileQuestion, count: getCount('PYQ') },
+    { label: 'Verified Class Notes', type: 'Notes', icon: FileText, count: getCount('Notes') },
+    { label: 'Lab Manuals & Code', type: 'Lab Manual', icon: FlaskConical, count: getCount('Lab Manual') },
+    { label: 'Assignments & Solns', type: 'Assignment', icon: BookMarked, count: getCount('Assignment') },
+    { label: 'Revision Cheat Sheets', type: 'Study Material', icon: Sparkles, count: getCount('Study Material') },
   ];
 
   return (
@@ -89,7 +97,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <div className="flex items-center gap-2 text-indigo-300 text-xs font-bold uppercase tracking-wider">
           <UploadCloud className="w-4 h-4" />
-          <span>Contribute & Earn Karma</span>
+          <span>Contribute Resources</span>
         </div>
         <div>
           <h4 className="font-bold text-sm text-white">Share Your Lecture Notes</h4>

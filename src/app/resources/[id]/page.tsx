@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useResources } from '@/context/ResourceContext';
+import { Resource } from '@/types';
+import { supabase } from '@/lib/supabase';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { ReportModal } from '@/components/ReportModal';
@@ -38,8 +40,95 @@ function ResourceDetailsContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [zoomLevel, setZoomLevel] = useState(100);
   const [isReportOpen, setIsReportOpen] = useState(false);
+  const [dbResource, setDbResource] = useState<Resource | null>(null);
+  const [loadingDb, setLoadingDb] = useState(false);
 
-  const resource = resources.find((r) => r.id === resourceId);
+  useEffect(() => {
+    const existing = resources.find((r) => r.id === resourceId);
+    if (!existing && resourceId) {
+      setLoadingDb(true);
+      supabase
+        .from('resources')
+        .select(`
+          id,
+          title,
+          description,
+          resource_type,
+          subject_name,
+          semester,
+          academic_year,
+          file_format,
+          file_size,
+          page_count,
+          download_count,
+          view_count,
+          rating,
+          tags,
+          is_verified,
+          created_at,
+          uploader:profiles!uploader_id (
+            id,
+            full_name,
+            college,
+            branch,
+            semester,
+            avatar_url,
+            is_verified
+          )
+        `)
+        .eq('id', resourceId)
+        .maybeSingle()
+        .then(({ data, error }) => {
+          if (data && !error) {
+            const uploaderData = Array.isArray(data.uploader) ? data.uploader[0] : data.uploader;
+            setDbResource({
+              id: data.id,
+              title: data.title,
+              description: data.description || 'No description provided.',
+              subject: data.subject_name,
+              semester: data.semester as any,
+              resourceType: data.resource_type as any,
+              academicYear: data.academic_year as any,
+              fileFormat: (data.file_format || 'PDF') as any,
+              fileSize: data.file_size || '1.0 MB',
+              pageCount: data.page_count || 12,
+              downloadCount: data.download_count ?? 0,
+              viewCount: data.view_count ?? 0,
+              rating: Number(data.rating) || 5.0,
+              createdAt: data.created_at ? new Date(data.created_at).toISOString().split('T')[0] : '',
+              tags: data.tags || [],
+              uploader: {
+                id: (uploaderData as any)?.id || 'contributor',
+                name: (uploaderData as any)?.full_name || 'Student Contributor',
+                avatar: (uploaderData as any)?.avatar_url || '',
+                college: (uploaderData as any)?.college || 'SRMCEM Lucknow',
+                branch: (uploaderData as any)?.branch || 'Computer Science & Engineering',
+                semester: (uploaderData as any)?.semester || data.semester || 'Semester 4',
+                verified: Boolean((uploaderData as any)?.is_verified ?? data.is_verified),
+              },
+              isVerified: Boolean(data.is_verified),
+              previewContent: {
+                summary: (data.description || data.title).slice(0, 160) + '...',
+                keyTopics: data.tags && data.tags.length > 0 ? data.tags : ['Unit Overview', 'Important Concepts'],
+                sampleText: `Title: ${data.title}\nSubject: ${data.subject_name}\n\nDocument cataloged in GitNote academic repository.`,
+              },
+            });
+          }
+          setLoadingDb(false);
+        });
+    }
+  }, [resourceId, resources]);
+
+  const resource = resources.find((r) => r.id === resourceId) || dbResource;
+
+  if (loadingDb) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <div className="w-10 h-10 border-4 border-[#4f46e5]/20 border-t-[#4f46e5] rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-slate-500 font-medium text-sm">Loading academic document from repository...</p>
+      </div>
+    );
+  }
 
   if (!resource) {
     return (

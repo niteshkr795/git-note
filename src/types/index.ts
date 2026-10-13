@@ -35,6 +35,7 @@ export interface Resource {
   tags: string[];
   uploader: Uploader;
   previewUrl?: string;
+  storagePath?: string;
   previewContent?: {
     summary: string;
     keyTopics: string[];
@@ -69,15 +70,7 @@ export interface UserProfile {
     totalUploads: number;
     totalDownloads: number;
     totalBookmarks: number;
-    reputationPoints: number;
   };
-  badges: Array<{
-    id: string;
-    name: string;
-    description: string;
-    icon: string;
-    unlockedAt: string;
-  }>;
 }
 
 export interface ReportReason {

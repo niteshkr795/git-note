@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { useResources } from '@/context/ResourceContext';
 import { ResourceGrid } from '@/components/ResourceGrid';
 import { Modal } from '@/components/Modal';
@@ -9,42 +10,70 @@ import { Button } from '@/components/ui/Button';
 import {
   UploadCloud,
   Bookmark,
-  Award,
   Download,
   Calendar,
   GraduationCap,
   ShieldCheck,
   Edit3,
-  Trophy,
   CheckCircle2,
+  LogOut,
 } from 'lucide-react';
 import Link from 'next/link';
 
 function ProfileContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') === 'bookmarks' ? 'bookmarks' : 'uploads';
 
-  const { resources, userProfile, addToast } = useResources();
-  const [activeTab, setActiveTab] = useState<'uploads' | 'bookmarks' | 'badges'>(initialTab);
+  const { user, signOut } = useAuth();
+  const { resources, userProfile, addToast, refreshResources } = useResources();
+  const [activeTab, setActiveTab] = useState<'uploads' | 'bookmarks'>(initialTab);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  useEffect(() => {
+    refreshResources();
+  }, [refreshResources]);
+
+  // Authenticated user display details
+  const displayName = user
+    ? user.user_metadata?.full_name || user.email?.split('@')[0] || userProfile.name
+    : userProfile.name;
+  const displayCollege = user?.user_metadata?.college || userProfile.college;
+  const displayBranch = user?.user_metadata?.branch || userProfile.branch;
+  const displaySemester = user?.user_metadata?.semester || userProfile.semester;
 
   // Edit profile modal state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [bioInput, setBioInput] = useState(userProfile.bio);
-  const [collegeInput, setCollegeInput] = useState(userProfile.college);
+  const [collegeInput, setCollegeInput] = useState(displayCollege);
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      await signOut();
+      addToast('info', 'Signed Out', 'You have been signed out.');
+      router.push('/');
+      router.refresh();
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     if (tabParam === 'bookmarks') setActiveTab('bookmarks');
-    else if (tabParam === 'badges') setActiveTab('badges');
   }, [searchParams]);
 
   // Compute uploaded resources (uploaded by current user)
   const uploadedResources = resources.filter(
-    (r) => r.uploader.name === userProfile.name || r.uploader.id === userProfile.id
+    (r) => r.uploader.name === displayName || (user && r.uploader.id === user.id)
   );
 
   // Compute bookmarked resources
   const bookmarkedResources = resources.filter((r) => r.isBookmarked);
+
+  // Compute actual dynamic statistics
+  const totalDownloads = uploadedResources.reduce((acc, curr) => acc + (curr.downloadCount || 0), 0);
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,9 +90,9 @@ function ProfileContent() {
             <div className="relative">
               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-tr from-[#4f46e5] via-[#7c3aed] to-[#38bdf8] flex items-center justify-center text-2xl font-black text-white shadow-sm ring-4 ring-indigo-50 overflow-hidden">
                 {userProfile.avatar ? (
-                  <img src={userProfile.avatar} alt={userProfile.name} className="w-full h-full object-cover" />
+                  <img src={userProfile.avatar} alt={displayName} className="w-full h-full object-cover" />
                 ) : (
-                  userProfile.name.charAt(0)
+                  displayName.charAt(0)
                 )}
               </div>
               <div
@@ -77,7 +106,7 @@ function ProfileContent() {
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-extrabold text-[#0f172a] tracking-tight">
-                  {userProfile.name}
+                  {displayName}
                 </h1>
                 <span className="text-xs font-semibold bg-[#ecfdf5] text-[#047857] border border-[#a7f3d0] px-2.5 py-0.5 rounded-full flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#10b981]" />
@@ -87,11 +116,11 @@ function ProfileContent() {
 
               <p className="text-xs sm:text-sm font-semibold text-[#4338ca] flex items-center gap-1.5">
                 <GraduationCap className="w-4 h-4 text-[#4f46e5] shrink-0" />
-                <span>{userProfile.branch} • {userProfile.semester}</span>
+                <span>{displayBranch} • {displaySemester}</span>
               </p>
 
               <p className="text-xs text-[#475569]">
-                {userProfile.college}
+                {displayCollege}
               </p>
 
               <p className="text-[11px] text-slate-400 flex items-center gap-1 pt-1 font-mono">
@@ -101,7 +130,7 @@ function ProfileContent() {
             </div>
           </div>
 
-          <div className="flex gap-2 w-full sm:w-auto">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
               size="sm"
@@ -121,6 +150,18 @@ function ProfileContent() {
                 Upload Resource
               </Button>
             </Link>
+            {user && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignOut}
+                isLoading={isSigningOut}
+                leftIcon={<LogOut className="w-3.5 h-3.5 text-rose-500" />}
+                className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200"
+              >
+                Sign Out
+              </Button>
+            )}
           </div>
         </div>
 
@@ -132,7 +173,7 @@ function ProfileContent() {
         </div>
 
         {/* Profile Statistics Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pt-6 border-t border-[#f1f5f9]">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-6 border-t border-[#f1f5f9]">
           <div className="bg-[#faf8ff] rounded-xl p-4 border border-[#e2e8f0]">
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-500 font-semibold">Resources Uploaded</span>
@@ -150,7 +191,7 @@ function ProfileContent() {
               <Download className="w-4 h-4 text-[#7c3aed]" />
             </div>
             <span className="block text-2xl font-black text-[#0f172a] mt-2 font-mono">
-              {userProfile.stats.totalDownloads}
+              {totalDownloads}
             </span>
             <span className="text-[10px] text-slate-500 font-medium">Classmates assisted</span>
           </div>
@@ -164,17 +205,6 @@ function ProfileContent() {
               {bookmarkedResources.length}
             </span>
             <span className="text-[10px] text-slate-500 font-medium">Study queue</span>
-          </div>
-
-          <div className="bg-[#faf8ff] rounded-xl p-4 border border-[#e2e8f0]">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500 font-semibold">Karma Reputation</span>
-              <Trophy className="w-4 h-4 text-[#4f46e5]" />
-            </div>
-            <span className="block text-2xl font-black text-[#4f46e5] mt-2 font-mono">
-              {userProfile.stats.reputationPoints}
-            </span>
-            <span className="text-[10px] text-[#4f46e5] font-semibold">Top 5% Contributor</span>
           </div>
         </div>
       </div>
@@ -203,18 +233,6 @@ function ProfileContent() {
         >
           <Bookmark className="w-4 h-4" />
           <span>My Bookmarks ({bookmarkedResources.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('badges')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-            activeTab === 'badges'
-              ? 'bg-[#4f46e5] text-white shadow-xs'
-              : 'text-slate-600 hover:text-[#0f172a] hover:bg-white'
-          }`}
-        >
-          <Award className="w-4 h-4" />
-          <span>Badges & Accolades</span>
         </button>
       </div>
 
@@ -255,60 +273,6 @@ function ProfileContent() {
             resources={bookmarkedResources}
             emptyType="bookmarks"
           />
-        </div>
-      )}
-
-      {activeTab === 'badges' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {userProfile.badges.map((badge) => (
-              <div
-                key={badge.id}
-                className="bg-white rounded-2xl border border-[#e2e8f0] p-5 flex items-start gap-4 shadow-xs"
-              >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-[#f59e0b] to-[#d97706] text-white flex items-center justify-center shrink-0 shadow-xs">
-                  <Trophy className="w-6 h-6" />
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-[#0f172a] text-sm tracking-tight">{badge.name}</h4>
-                    <span className="text-[10px] font-mono text-[#047857] bg-[#ecfdf5] px-2 py-0.5 rounded-full border border-[#a7f3d0]">
-                      Unlocked {badge.unlockedAt}
-                    </span>
-                  </div>
-                  <p className="text-xs text-[#475569] leading-relaxed">
-                    {badge.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Karma Milestone Progress Card */}
-          <div className="bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#312e81] text-white rounded-2xl p-6 sm:p-8 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-xs font-mono uppercase tracking-widest text-indigo-300 block mb-1">
-                  Academic Reputation Level
-                </span>
-                <h3 className="text-lg font-bold text-white tracking-tight">Tier 3 Contributor: Academic Mentor</h3>
-              </div>
-              <span className="text-xl font-bold font-mono text-indigo-200">
-                {userProfile.stats.reputationPoints} / 1,000 PTS
-              </span>
-            </div>
-
-            <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-[#4f46e5] via-[#7c3aed] to-[#38bdf8] rounded-full transition-all duration-300"
-                style={{ width: `${(userProfile.stats.reputationPoints / 1000) * 100}%` }}
-              />
-            </div>
-
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Earn 80 more points by uploading verified PYQs or lecture summaries to reach Tier 4: Campus Valedictorian.
-            </p>
-          </div>
         </div>
       )}
 

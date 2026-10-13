@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { AuthProvider } from '@/context/AuthContext';
 import { ResourceProvider } from '@/context/ResourceContext';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -30,14 +31,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={`h-full ${inter.variable}`}>
       <body className="min-h-full flex flex-col bg-[#faf8ff] text-[#0f172a] font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900">
-        <ResourceProvider>
-          <Suspense fallback={<div className="h-16 bg-[#0f172a]" />}>
-            <Navbar />
-          </Suspense>
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <ToastContainer />
-        </ResourceProvider>
+        <AuthProvider>
+          <ResourceProvider>
+            <Suspense fallback={<div className="h-16 bg-[#0f172a]" />}>
+              <Navbar />
+            </Suspense>
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <ToastContainer />
+          </ResourceProvider>
+        </AuthProvider>
       </body>
     </html>
   );

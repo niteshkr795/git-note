@@ -41,22 +41,22 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
-                <Link href="/" className="hover:text-white transition-colors">
+                <Link href="/search?type=PYQs" className="hover:text-white transition-colors">
                   Previous Year Papers (PYQ)
                 </Link>
               </li>
               <li>
-                <Link href="/" className="hover:text-white transition-colors">
+                <Link href="/search?type=Notes" className="hover:text-white transition-colors">
                   Handwritten Class Notes
                 </Link>
               </li>
               <li>
-                <Link href="/" className="hover:text-white transition-colors">
+                <Link href="/search?type=Lab+Manuals" className="hover:text-white transition-colors">
                   Lab Manuals & Practical Code
                 </Link>
               </li>
               <li>
-                <Link href="/" className="hover:text-white transition-colors">
+                <Link href="/search?type=Assignments" className="hover:text-white transition-colors">
                   Assignment Solutions
                 </Link>
               </li>
@@ -70,8 +70,8 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
-                <Link href="/" className="hover:text-white transition-colors">
-                  Explore Collections
+                <Link href="/search" className="hover:text-white transition-colors">
+                  Explore Resources
                 </Link>
               </li>
               <li>
@@ -81,7 +81,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link href="/profile" className="hover:text-white transition-colors">
-                  Student Profile & Karma
+                  Student Profile
                 </Link>
               </li>
               <li>

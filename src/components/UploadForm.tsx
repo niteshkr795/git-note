@@ -2,7 +2,9 @@
 
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { useResources } from '@/context/ResourceContext';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import { SUBJECTS, SEMESTERS, RESOURCE_TYPES, ACADEMIC_YEARS } from '@/data/mockData';
 import { Semester, ResourceType, AcademicYear, FileFormat } from '@/types';
@@ -15,13 +17,14 @@ import {
   FileCheck,
   ShieldCheck,
   ArrowRight,
-  Info,
+  LogIn,
 } from 'lucide-react';
 import Link from 'next/link';
 
 export const UploadForm: React.FC = () => {
   const router = useRouter();
-  const { addResource } = useResources();
+  const { user } = useAuth();
+  const { refreshResources, addToast } = useResources();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form states
@@ -34,7 +37,8 @@ export const UploadForm: React.FC = () => {
   const [tagsInput, setTagsInput] = useState('');
 
   // File state
-  const [selectedFile, setSelectedFile] = useState<{
+  const [selectedFileObj, setSelectedFileObj] = useState<File | null>(null);
+  const [selectedFileMeta, setSelectedFileMeta] = useState<{
     name: string;
     size: string;
     format: FileFormat;
@@ -48,7 +52,6 @@ export const UploadForm: React.FC = () => {
   const [uploadSuccessResource, setUploadSuccessResource] = useState<{ id: string; title: string } | null>(null);
 
   const handleFileSelection = (file: File) => {
-    // Check file format
     const name = file.name;
     const ext = name.split('.').pop()?.toUpperCase();
     let format: FileFormat = 'PDF';
@@ -74,7 +77,8 @@ export const UploadForm: React.FC = () => {
     }
 
     const sizeInMB = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
-    setSelectedFile({
+    setSelectedFileObj(file);
+    setSelectedFileMeta({
       name,
       size: sizeInMB,
       format,
@@ -97,6 +101,10 @@ export const UploadForm: React.FC = () => {
   const validateForm = () => {
     const errs: Record<string, string> = {};
 
+    if (!user) {
+      errs.auth = 'You must be signed in to upload study resources.';
+    }
+
     if (!title.trim()) {
       errs.title = 'Resource title is required.';
     } else if (title.trim().length < 5) {
@@ -113,7 +121,7 @@ export const UploadForm: React.FC = () => {
       errs.description = 'Description should be at least 15 characters to help students.';
     }
 
-    if (!selectedFile) {
+    if (!selectedFileObj || !selectedFileMeta) {
       errs.file = 'Please choose or drag a document file to upload.';
     }
 
@@ -121,28 +129,80 @@ export const UploadForm: React.FC = () => {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!validateForm() || !user || !selectedFileObj || !selectedFileMeta) return;
 
     setIsUploading(true);
     setUploadProgress(15);
 
-    // Simulated multi-stage progress
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 95) {
-          clearInterval(interval);
-          return 95;
+    try {
+      // Step 1: Ensure user profile exists in public.profiles table
+      setUploadProgress(25);
+      const { data: profileRow } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (!profileRow) {
+        const { error: profileError } = await supabase.from('profiles').upsert(
+          {
+            id: user.id,
+            email: user.email,
+            full_name:
+              user.user_metadata?.full_name ||
+              user.email?.split('@')[0] ||
+              'Student Contributor',
+            college: user.user_metadata?.college || 'SRMCEM Lucknow',
+            branch: user.user_metadata?.branch || 'Computer Science & Engineering',
+            semester: user.user_metadata?.semester || semester,
+          },
+          { onConflict: 'id' }
+        );
+
+        if (profileError) {
+          console.warn('[GitNote] Could not create profile fallback:', profileError.message);
         }
-        return prev + 25;
-      });
-    }, 200);
+      }
 
-    setTimeout(() => {
-      clearInterval(interval);
-      setUploadProgress(100);
+      // Step 2: Upload file to Supabase Storage bucket 'study-resources'
+      setUploadProgress(45);
+      const cleanFileName = selectedFileObj.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const storagePath = `${user.id}/${Date.now()}_${cleanFileName}`;
 
+      const { data: storageUploadData, error: storageError } = await supabase.storage
+        .from('study-resources')
+        .upload(storagePath, selectedFileObj, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (storageError) {
+        console.error('[GitNote] Storage upload error:', storageError);
+
+        if (
+          storageError.message?.toLowerCase().includes('bucket not found') ||
+          (storageError as any).statusCode === '404'
+        ) {
+          setErrors({
+            upload:
+              'Storage bucket "study-resources" has not been created yet in your Supabase project. Please run the SQL migration (supabase/migrations/20261014000001_phase3_storage_policies.sql) in your Supabase SQL Editor.',
+          });
+          setIsUploading(false);
+          return;
+        }
+
+        setErrors({
+          upload: `File upload failed: ${storageError.message}`,
+        });
+        setIsUploading(false);
+        return;
+      }
+
+      setUploadProgress(75);
+
+      // Step 3: Insert metadata row in PostgreSQL 'resources' table
       const parsedTags = tagsInput
         ? tagsInput
             .split(',')
@@ -150,25 +210,54 @@ export const UploadForm: React.FC = () => {
             .filter(Boolean)
         : [resourceType, semester.replace('Semester ', 'Sem ')];
 
-      const newResource = addResource({
-        title: title.trim(),
-        description: description.trim(),
-        subject,
-        semester,
-        resourceType,
-        academicYear,
-        fileFormat: selectedFile?.format || 'PDF',
-        fileSize: selectedFile?.size || '4.2 MB',
-        tags: parsedTags,
-        pageCount: Math.floor(Math.random() * 30) + 12,
-      });
+      const { data: insertedResource, error: dbError } = await supabase
+        .from('resources')
+        .insert({
+          title: title.trim(),
+          description: description.trim(),
+          resource_type: resourceType,
+          subject_name: subject,
+          semester: semester,
+          academic_year: academicYear,
+          file_format: selectedFileMeta.format,
+          file_size: selectedFileMeta.size,
+          file_size_bytes: selectedFileObj.size,
+          storage_path: storageUploadData?.path || storagePath,
+          page_count: Math.floor(Math.random() * 20) + 10,
+          tags: parsedTags,
+          uploader_id: user.id,
+          is_verified: false,
+        })
+        .select('id, title')
+        .single();
 
-      setIsUploading(false);
+      if (dbError) {
+        console.error('[GitNote] Database insert error:', dbError);
+        setErrors({
+          upload: `Database error saving resource: ${dbError.message}`,
+        });
+        setIsUploading(false);
+        return;
+      }
+
+      setUploadProgress(100);
+
+      // Refresh global resources so it immediately appears in Explore, Search & User Profile!
+      await refreshResources();
+
+      addToast('success', 'Upload Successful', `"${insertedResource.title}" is now cataloged!`);
       setUploadSuccessResource({
-        id: newResource.id,
-        title: newResource.title,
+        id: insertedResource.id,
+        title: insertedResource.title,
       });
-    }, 1200);
+    } catch (err: any) {
+      console.error('[GitNote] Unexpected upload exception:', err);
+      setErrors({
+        upload: err?.message || 'An unexpected error occurred during upload. Please try again.',
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleReset = () => {
@@ -179,7 +268,8 @@ export const UploadForm: React.FC = () => {
     setResourceType('Notes');
     setAcademicYear('2024-25');
     setTagsInput('');
-    setSelectedFile(null);
+    setSelectedFileObj(null);
+    setSelectedFileMeta(null);
     setErrors({});
     setUploadSuccessResource(null);
   };
@@ -200,7 +290,7 @@ export const UploadForm: React.FC = () => {
         </h3>
 
         <p className="text-sm text-[#475569] mb-6 leading-relaxed max-w-md mx-auto">
-          &quot;{uploadSuccessResource.title}&quot; is now indexed and immediately accessible by peer college students across campus.
+          &quot;{uploadSuccessResource.title}&quot; is now indexed and immediately visible in your profile and explore search.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -212,6 +302,13 @@ export const UploadForm: React.FC = () => {
             <ArrowRight className="w-4 h-4" />
           </Link>
 
+          <Link
+            href="/profile"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-semibold transition-all flex items-center justify-center"
+          >
+            Go to My Profile
+          </Link>
+
           <Button
             type="button"
             variant="outline"
@@ -219,7 +316,7 @@ export const UploadForm: React.FC = () => {
             onClick={handleReset}
             className="w-full sm:w-auto"
           >
-            Upload Another Document
+            Upload Another
           </Button>
         </div>
       </div>
@@ -228,6 +325,28 @@ export const UploadForm: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Unauthenticated Warning Banner */}
+      {!user && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-amber-900">
+          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-bold text-amber-950">Authentication Required</p>
+            <p className="text-amber-800 mt-0.5">
+              You must be logged in to contribute study materials. Uploads are securely linked to your verified student account.
+            </p>
+            <div className="mt-2.5">
+              <Link
+                href="/login?redirect=/upload"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs transition-colors shadow-xs"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Sign In to Upload</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Safety & Academic Guidelines Banner */}
       <div className="bg-[#eef2ff] border border-[#e0e7ff] rounded-2xl p-4 flex items-start gap-3.5 text-xs text-[#312e81]">
         <ShieldCheck className="w-5 h-5 text-[#4f46e5] shrink-0 mt-0.5" />
@@ -239,13 +358,23 @@ export const UploadForm: React.FC = () => {
         </div>
       </div>
 
+      {errors.upload && (
+        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-xs text-rose-800 space-y-1">
+          <p className="font-bold text-rose-950 flex items-center gap-1.5">
+            <AlertCircle className="w-4 h-4 text-rose-600" />
+            Upload Error
+          </p>
+          <p className="leading-relaxed">{errors.upload}</p>
+        </div>
+      )}
+
       {/* Drag & Drop File Upload Area */}
       <div>
         <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
           Document File <span className="text-rose-500">*</span>
         </label>
 
-        {!selectedFile ? (
+        {!selectedFileMeta ? (
           <div
             onDragOver={(e) => {
               e.preventDefault();
@@ -293,17 +422,20 @@ export const UploadForm: React.FC = () => {
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-bold text-[#0f172a] truncate">
-                  {selectedFile.name}
+                  {selectedFileMeta.name}
                 </p>
                 <p className="text-[11px] text-slate-500">
-                  {selectedFile.format} • {selectedFile.size}
+                  {selectedFileMeta.format} • {selectedFileMeta.size}
                 </p>
               </div>
             </div>
 
             <button
               type="button"
-              onClick={() => setSelectedFile(null)}
+              onClick={() => {
+                setSelectedFileObj(null);
+                setSelectedFileMeta(null);
+              }}
               className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
               title="Remove file"
             >
@@ -522,6 +654,7 @@ export const UploadForm: React.FC = () => {
           variant="primary"
           size="md"
           isLoading={isUploading}
+          disabled={!user}
           leftIcon={<UploadCloud className="w-4 h-4" />}
         >
           Publish Resource
