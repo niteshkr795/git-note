@@ -2,6 +2,8 @@
 
 > A modern academic resource-sharing platform for college students. Centralizing Previous Year Question Papers (PYQs), lecture notes, assignments, and lab manuals in one clean, searchable hub.
 
+🔗 **Live Website**: [https://gitnote8.vercel.app](https://gitnote8.vercel.app)
+
 ---
 
 ## 🚀 Phase 1 MVP Scope
