@@ -10,6 +10,7 @@ export interface Uploader {
   id: string;
   name: string;
   avatar: string;
+  avatarUrl?: string;
   college: string;
   branch: string;
   semester: string;
@@ -41,6 +42,7 @@ export interface Resource {
     diagramType?: string;
   };
   isBookmarked?: boolean;
+  isVerified?: boolean;
 }
 
 export interface FilterState {
@@ -57,6 +59,7 @@ export interface UserProfile {
   name: string;
   email: string;
   avatar: string;
+  avatarInitials?: string;
   college: string;
   branch: string;
   semester: Semester;

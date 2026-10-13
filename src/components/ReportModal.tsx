@@ -5,7 +5,7 @@ import { Modal } from '@/components/Modal';
 import { Button } from '@/components/ui/Button';
 import { REPORT_REASONS } from '@/data/mockData';
 import { useResources } from '@/context/ResourceContext';
-import { AlertTriangle, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -57,11 +57,11 @@ export const ReportModal: React.FC<ReportModalProps> = ({
     <Modal isOpen={isOpen} onClose={handleReset} title="Report Academic Resource" maxWidth="lg">
       {isSubmitted ? (
         <div className="text-center py-6">
-          <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3 border border-emerald-200">
+          <div className="w-14 h-14 rounded-full bg-[#ecfdf5] text-[#047857] flex items-center justify-center mx-auto mb-3 border border-[#a7f3d0]">
             <CheckCircle2 className="w-8 h-8" />
           </div>
-          <h4 className="text-lg font-bold text-slate-900 mb-1">Report Received</h4>
-          <p className="text-xs text-slate-600 max-w-sm mx-auto mb-6 leading-relaxed">
+          <h4 className="text-lg font-bold text-[#0f172a] mb-1">Report Received</h4>
+          <p className="text-xs text-[#475569] max-w-sm mx-auto mb-6 leading-relaxed">
             Thank you for helping maintain high academic integrity on GitNote. Our community moderation team will review &quot;{resourceTitle}&quot; within 24 hours.
           </p>
           <Button variant="primary" onClick={handleReset} className="w-full">
@@ -70,28 +70,26 @@ export const ReportModal: React.FC<ReportModalProps> = ({
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-3.5 flex items-start gap-3 text-xs text-amber-800">
-            <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <div className="p-3 bg-[#fffbeb] border border-[#fde68a] rounded-xl flex items-start gap-2.5 text-xs text-[#b45309]">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-[#f59e0b]" />
             <div>
-              <p className="font-semibold text-amber-900">Academic Safety Notice</p>
-              <p className="mt-0.5 text-amber-700 leading-relaxed">
-                You are reporting: <strong className="font-semibold text-amber-950">&quot;{resourceTitle}&quot;</strong>. Reports help maintain accurate syllabus materials for all students.
-              </p>
+              <span className="font-semibold block text-[#92400e]">Academic Standards Review</span>
+              Reporting flags documents with broken scans, incorrect syllabus mappings, or copyright infringement.
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-              Select Reason <span className="text-rose-500">*</span>
+            <label className="block text-xs font-semibold text-[#0f172a] mb-2">
+              Select Reason for Concern:
             </label>
             <div className="space-y-2">
               {REPORT_REASONS.map((reason) => (
                 <label
                   key={reason.id}
-                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                  className={`flex items-start gap-2.5 p-3 rounded-xl border text-xs cursor-pointer transition-all ${
                     selectedReason === reason.id
-                      ? 'border-blue-600 bg-blue-50/50 shadow-xs'
-                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      ? 'border-[#4f46e5] bg-[#eef2ff] text-[#4338ca] font-semibold'
+                      : 'border-[#cbd5e1] hover:bg-[#f8fafc] text-slate-700'
                   }`}
                 >
                   <input
@@ -99,40 +97,33 @@ export const ReportModal: React.FC<ReportModalProps> = ({
                     name="reportReason"
                     value={reason.id}
                     checked={selectedReason === reason.id}
-                    onChange={(e) => {
-                      setSelectedReason(e.target.value);
-                      setError('');
-                    }}
-                    className="mt-0.5 text-blue-600 focus:ring-blue-500"
+                    onChange={(e) => setSelectedReason(e.target.value)}
+                    className="w-4 h-4 mt-0.5 text-[#4f46e5] border-slate-300 focus:ring-[#4f46e5]"
                   />
                   <div>
-                    <span className="block text-xs font-bold text-slate-800">
-                      {reason.label}
-                    </span>
-                    <span className="block text-[11px] text-slate-500 leading-snug mt-0.5">
-                      {reason.description}
-                    </span>
+                    <span className="block">{reason.label}</span>
+                    <span className="text-[11px] text-slate-500 font-normal">{reason.description}</span>
                   </div>
                 </label>
               ))}
             </div>
-            {error && <p className="text-xs text-rose-600 mt-2 font-medium">{error}</p>}
+            {error && <p className="text-xs text-rose-600 mt-1.5 font-medium">{error}</p>}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              Additional Details (Optional)
+            <label className="block text-xs font-semibold text-[#0f172a] mb-1">
+              Additional Context (Optional):
             </label>
             <textarea
-              rows={3}
               value={details}
               onChange={(e) => setDetails(e.target.value)}
-              placeholder="Provide specific page numbers or context if applicable..."
-              className="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all resize-none"
+              placeholder="Provide specific page numbers or syllabus discrepancies..."
+              rows={3}
+              className="w-full p-3 bg-white border border-[#cbd5e1] rounded-xl text-xs text-[#0f172a] placeholder-slate-400 focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100 outline-none transition-all"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#f1f5f9]">
             <Button type="button" variant="outline" size="sm" onClick={handleReset}>
               Cancel
             </Button>
@@ -141,7 +132,6 @@ export const ReportModal: React.FC<ReportModalProps> = ({
               variant="danger"
               size="sm"
               isLoading={isSubmitting}
-              leftIcon={<AlertTriangle className="w-3.5 h-3.5" />}
             >
               Submit Report
             </Button>

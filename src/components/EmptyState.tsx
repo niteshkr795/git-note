@@ -48,24 +48,24 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   const Icon = current.icon;
 
   return (
-    <div className="bg-white border border-dashed border-slate-200 rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center justify-center max-w-xl mx-auto my-6">
-      <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 mb-4 shadow-sm">
+    <div className="bg-white border border-dashed border-[#cbd5e1] rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center justify-center max-w-xl mx-auto my-6 shadow-xs">
+      <div className="w-16 h-16 rounded-2xl bg-[#eef2ff] border border-[#e0e7ff] flex items-center justify-center text-[#4f46e5] mb-4 shadow-xs">
         <Icon className="w-8 h-8 stroke-[1.75]" />
       </div>
 
-      <h3 className="text-lg font-bold text-slate-900 mb-1.5">
+      <h3 className="text-lg font-bold text-[#0f172a] mb-1.5 tracking-tight">
         {title || current.defaultTitle}
       </h3>
 
-      <p className="text-sm text-slate-500 max-w-md mb-6 leading-relaxed">
+      <p className="text-sm text-[#475569] max-w-md mb-6 leading-relaxed">
         {description || current.defaultDesc}
       </p>
 
       {onAction && (
         <Button
-          variant="secondary"
-          size="md"
           onClick={onAction}
+          variant="primary"
+          size="md"
           leftIcon={<RotateCcw className="w-4 h-4" />}
         >
           {actionText || current.defaultAction}

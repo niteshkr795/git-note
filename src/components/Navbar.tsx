@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useResources } from '@/context/ResourceContext';
 import {
@@ -11,10 +12,11 @@ import {
   User,
   Menu,
   X,
-  Sparkles,
   Compass,
-  LogIn,
+  Sparkles,
   Search,
+  ArrowRight,
+  ShieldCheck,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -23,10 +25,10 @@ export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: '/', label: 'Explore', icon: Compass },
-    { href: '/upload', label: 'Upload Resource', icon: UploadCloud, highlight: true },
+    { href: '/', label: 'Explore Hub', icon: Compass },
+    { href: '/upload', label: 'Upload Notes', icon: UploadCloud, highlight: true },
     { href: '/profile?tab=bookmarks', label: 'Bookmarks', icon: Bookmark },
-    { href: '/profile', label: 'My Profile', icon: User },
+    { href: '/profile', label: 'Profile', icon: User },
   ];
 
   const isActive = (path: string) => {
@@ -36,24 +38,29 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#0a1128]/95 backdrop-blur-md border-b border-slate-800 text-white transition-all">
+    <header className="sticky top-0 z-40 w-full bg-[#0f172a]/95 backdrop-blur-xl border-b border-white/10 text-white transition-all shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand Logo */}
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-teal-400 p-[2px] shadow-md group-hover:scale-105 transition-transform">
-                <div className="w-full h-full bg-[#0a1128] rounded-[10px] flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-teal-400 group-hover:rotate-6 transition-transform" />
-                </div>
+              <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-white shadow-md border border-white/20 group-hover:scale-105 transition-transform flex items-center justify-center p-0.5">
+                <Image
+                  src="/logo.png"
+                  alt="GitNote Logo"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-contain rounded-lg"
+                  priority
+                />
               </div>
               <div className="flex flex-col">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   <span className="font-extrabold text-xl tracking-tight text-white font-mono">
-                    Git<span className="text-teal-400">Note</span>
+                    Git<span className="text-[#818cf8]">Note</span>
                   </span>
-                  <span className="text-[10px] font-semibold bg-teal-500/20 text-teal-300 border border-teal-500/30 px-1.5 py-0.2 rounded uppercase tracking-wider">
-                    v1.0
+                  <span className="text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                    Academic
                   </span>
                 </div>
                 <span className="text-[10px] text-slate-400 font-medium tracking-wide">
@@ -71,15 +78,15 @@ export const Navbar: React.FC = () => {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all ${
                       active
-                        ? 'bg-white/10 text-white font-semibold shadow-inner'
+                        ? 'bg-white/10 text-white shadow-inner border border-white/10'
                         : link.highlight
-                        ? 'text-teal-300 hover:text-white hover:bg-teal-500/20'
+                        ? 'text-indigo-300 hover:text-white hover:bg-indigo-500/20'
                         : 'text-slate-300 hover:text-white hover:bg-white/5'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${active ? 'text-teal-400' : 'text-slate-400'}`} />
+                    <Icon className={`w-4 h-4 ${active ? 'text-indigo-400' : 'text-slate-400'}`} />
                     <span>{link.label}</span>
                   </Link>
                 );
@@ -91,56 +98,49 @@ export const Navbar: React.FC = () => {
           <div className="hidden sm:flex items-center gap-3">
             <Link
               href="/login"
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
             >
               Sign In
             </Link>
 
             <Link
-              href="/signup"
-              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-sm"
+              href="/upload"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-[#4f46e5] text-white hover:bg-[#4338ca] hover:scale-[1.01] active:bg-[#3730a3] transition-all shadow-sm"
             >
-              Register
+              <UploadCloud className="w-3.5 h-3.5" />
+              <span>Share Notes</span>
             </Link>
 
-            {/* User Profile Mini Badge */}
-            <div className="h-6 w-px bg-slate-800 mx-1" />
-
+            {/* User Profile Mini Pill */}
             <Link
               href="/profile"
-              className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-white/10 transition-colors group"
+              className="flex items-center gap-2 pl-2 pr-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all group"
             >
-              <img
-                src={userProfile.avatar}
-                alt={userProfile.name}
-                className="w-8 h-8 rounded-full object-cover ring-2 ring-teal-500/50 group-hover:ring-teal-400"
-              />
-              <div className="hidden lg:flex flex-col text-left">
-                <span className="text-xs font-semibold text-slate-200 group-hover:text-white leading-tight">
-                  {userProfile.name}
-                </span>
-                <span className="text-[10px] text-teal-400 leading-tight">
-                  {userProfile.semester}
-                </span>
+              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-[10px] font-bold text-white shadow-2xs overflow-hidden">
+                {userProfile.avatar ? (
+                  <img src={userProfile.avatar} alt={userProfile.name} className="w-full h-full object-cover" />
+                ) : (
+                  userProfile.name.charAt(0)
+                )}
               </div>
+              <span className="text-xs font-medium text-slate-200 group-hover:text-white">
+                {userProfile.name.split(' ')[0]}
+              </span>
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile menu hamburger toggle */}
           <div className="flex md:hidden items-center gap-2">
             <Link
-              href="/profile"
-              className="flex items-center p-1 rounded-full hover:bg-white/10"
+              href="/upload"
+              className="p-2 text-indigo-400 hover:text-white hover:bg-white/10 rounded-xl"
+              aria-label="Upload"
             >
-              <img
-                src={userProfile.avatar}
-                alt={userProfile.name}
-                className="w-7 h-7 rounded-full object-cover ring-1 ring-teal-400"
-              />
+              <UploadCloud className="w-5 h-5" />
             </Link>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 focus:outline-none cursor-pointer"
+              className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               aria-label="Toggle Navigation Menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -149,13 +149,10 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Dropdown Menu */}
+      {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-800 bg-[#0a1128] px-4 pt-3 pb-5 space-y-2 animate-in slide-in-from-top duration-200">
-          <div className="pb-2 mb-2 border-b border-slate-800/80">
-            <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold px-2 mb-1">
-              Navigation
-            </div>
+        <div className="md:hidden bg-[#0f172a] border-b border-white/10 px-4 pt-3 pb-6 space-y-3 animate-in slide-in-from-top duration-200">
+          <div className="grid grid-cols-1 gap-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const active = isActive(link.href);
@@ -164,34 +161,40 @@ export const Navbar: React.FC = () => {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                     active
-                      ? 'bg-blue-600/30 text-teal-300 font-semibold'
+                      ? 'bg-white/10 text-white'
                       : 'text-slate-300 hover:bg-white/5 hover:text-white'
                   }`}
                 >
-                  <Icon className="w-4 h-4 text-teal-400" />
+                  <Icon className={`w-4 h-4 ${active ? 'text-indigo-400' : 'text-slate-400'}`} />
                   <span>{link.label}</span>
                 </Link>
               );
             })}
           </div>
 
-          <div className="flex gap-2 pt-2">
-            <Link
-              href="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex-1 py-2 rounded-xl text-center text-xs font-semibold text-slate-200 bg-white/10 hover:bg-white/20 transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex-1 py-2 rounded-xl text-center text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors"
-            >
-              Sign Up
-            </Link>
+          <div className="pt-3 border-t border-white/10 flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs text-slate-400 px-3 py-1">
+              <span>Signed in as:</span>
+              <span className="font-semibold text-white">{userProfile.name}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-center py-2 text-xs font-semibold bg-white/10 text-white rounded-xl hover:bg-white/15"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/signup"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-center py-2 text-xs font-semibold bg-[#4f46e5] text-white rounded-xl hover:bg-[#4338ca]"
+              >
+                Sign Up
+              </Link>
+            </div>
           </div>
         </div>
       )}

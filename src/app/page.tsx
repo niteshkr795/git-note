@@ -8,20 +8,15 @@ import { SearchBar } from '@/components/SearchBar';
 import { FilterControls } from '@/components/FilterControls';
 import { ResourceGrid } from '@/components/ResourceGrid';
 import { Sidebar } from '@/components/Sidebar';
-import { Button } from '@/components/ui/Button';
 import {
-  BookOpen,
-  UploadCloud,
-  FileText,
-  FileQuestion,
-  FlaskConical,
-  Award,
   Sparkles,
-  Search,
-  CheckCircle,
-  GraduationCap,
   ArrowRight,
   Flame,
+  CheckCircle2,
+  BookOpen,
+  GraduationCap,
+  Layers,
+  Award,
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -108,33 +103,32 @@ export default function HomePage() {
       });
   }, [resources, filters]);
 
-  // Featured high-impact items for hero showcase
+  // High-yield items for showcase
   const topDownloaded = useMemo(() => {
     return [...resources].sort((a, b) => b.downloadCount - a.downloadCount).slice(0, 3);
   }, [resources]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#faf8ff]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-[#0a1128] via-[#0e1738] to-[#14214d] text-white pt-10 pb-16 px-4 sm:px-6 lg:px-8 border-b border-slate-800 relative overflow-hidden">
-        {/* Subtle decorative background glow */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
+      <section className="bg-gradient-to-b from-[#0f172a] via-[#1e1b4b] to-[#2e1065] text-white pt-12 pb-16 px-4 sm:px-6 lg:px-8 border-b border-white/10 relative overflow-hidden">
+        {/* Subtle decorative background glowing meshes */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#4f46e5]/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-[#7c3aed]/15 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/15 border border-teal-500/30 text-teal-300 text-xs font-semibold backdrop-blur-md">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Academic Resource Exchange for College Students</span>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/15 text-indigo-300 text-xs font-semibold backdrop-blur-md shadow-xs">
+              <Sparkles className="w-3.5 h-3.5 text-[#818cf8]" />
+              <span>Academic Precision & Resource Exchange</span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              Learn. Share. <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-blue-300 to-indigo-200">Discover.</span>
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-[-0.03em] text-white leading-tight">
+              Learn. Share. <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-violet-300 to-sky-300">Discover.</span>
             </h1>
 
             <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-              Stop hunting through scattered WhatsApp groups and disorganized cloud drives.
-              Find university previous year papers (PYQs), verified lecture notes, and lab manuals in one central hub.
+              Centralized Previous Year Papers (PYQs), professor-approved lecture notes, and lab manuals designed for collegiate academic momentum.
             </p>
 
             {/* Hero Search Input */}
@@ -148,22 +142,22 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Quick Stats Badges */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto mt-10 pt-8 border-t border-white/10 text-center">
-            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <span className="block text-xl sm:text-2xl font-black text-teal-400 font-mono">10+</span>
-              <span className="text-xs text-slate-300 font-medium">Subjects Covered</span>
+          {/* Academic Precision Counters */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto mt-12 pt-8 border-t border-white/10 text-center">
+            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-colors">
+              <span className="block text-2xl sm:text-3xl font-black text-[#818cf8] font-mono tracking-tight">12+</span>
+              <span className="text-xs text-slate-300 font-medium">B.Tech Subjects</span>
             </div>
-            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <span className="block text-xl sm:text-2xl font-black text-blue-300 font-mono">8 Sem</span>
-              <span className="text-xs text-slate-300 font-medium">Full Curriculum</span>
+            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-colors">
+              <span className="block text-2xl sm:text-3xl font-black text-[#a78bfa] font-mono tracking-tight">8 Sem</span>
+              <span className="text-xs text-slate-300 font-medium">Curriculum Coverage</span>
             </div>
-            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <span className="block text-xl sm:text-2xl font-black text-amber-300 font-mono">100%</span>
-              <span className="text-xs text-slate-300 font-medium">Free Student Access</span>
+            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-colors">
+              <span className="block text-2xl sm:text-3xl font-black text-[#fbbf24] font-mono tracking-tight">100%</span>
+              <span className="text-xs text-slate-300 font-medium">Open Student Access</span>
             </div>
-            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <span className="block text-xl sm:text-2xl font-black text-emerald-300 font-mono">Verified</span>
+            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-colors">
+              <span className="block text-2xl sm:text-3xl font-black text-[#34d399] font-mono tracking-tight">Verified</span>
               <span className="text-xs text-slate-300 font-medium">Peer Solutions</span>
             </div>
           </div>
@@ -171,21 +165,21 @@ export default function HomePage() {
       </section>
 
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Featured Section Highlight (Only if not currently searching with filters) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        {/* High-Yield Exam Favorites Highlight (Shown when no search/filters are active) */}
         {!filters.searchQuery && !filters.resourceType && !filters.subject && (
           <div className="mb-10">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-amber-50 text-amber-600 rounded-lg">
-                  <Flame className="w-5 h-5 fill-amber-500" />
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-[#fffbeb] text-[#b45309] rounded-xl border border-[#fde68a]">
+                  <Flame className="w-5 h-5 fill-[#f59e0b]" />
                 </div>
                 <div>
-                  <h2 className="text-base sm:text-lg font-bold text-slate-900">
+                  <h2 className="text-base sm:text-lg font-bold text-[#0f172a] tracking-tight">
                     High-Yield Exam Favorites
                   </h2>
-                  <p className="text-xs text-slate-500">
-                    Most downloaded resources among university students this week
+                  <p className="text-xs text-[#475569]">
+                    Top-downloaded study material and previous question papers this semester
                   </p>
                 </div>
               </div>
@@ -195,34 +189,37 @@ export default function HomePage() {
               {topDownloaded.map((res) => (
                 <div
                   key={res.id}
-                  className="bg-gradient-to-br from-white to-slate-50 rounded-2xl p-4 border border-slate-200/90 hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between"
+                  className="bg-white rounded-2xl p-5 border border-[#e2e8f0] hover:border-[#cbd5e1] hover:shadow-[0_10px_20px_-3px_rgba(79,70,229,0.08)] transition-all flex flex-col justify-between group"
                 >
                   <div>
-                    <div className="flex items-center justify-between text-xs mb-2">
-                      <span className="font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                    <div className="flex items-center justify-between text-xs mb-2.5">
+                      <span className="font-semibold text-[#b45309] bg-[#fffbeb] border border-[#fde68a] px-2.5 py-0.5 rounded-full text-[11px]">
                         {res.resourceType}
                       </span>
-                      <span className="text-slate-500 font-medium">
+                      <span className="text-slate-500 font-mono text-[11px]">
                         {res.downloadCount} downloads
                       </span>
                     </div>
-                    <Link href={`/resources/${res.id}`} className="hover:text-blue-600 transition-colors">
-                      <h4 className="font-bold text-slate-900 text-sm line-clamp-2 mb-1">
+
+                    <Link href={`/resources/${res.id}`} className="group-hover:text-[#4f46e5] transition-colors">
+                      <h4 className="font-bold text-[#0f172a] text-sm line-clamp-2 mb-1.5 tracking-tight">
                         {res.title}
                       </h4>
                     </Link>
-                    <p className="text-xs text-slate-500 line-clamp-2">
+
+                    <p className="text-xs text-[#475569] line-clamp-2 leading-relaxed">
                       {res.subject} • {res.semester}
                     </p>
                   </div>
 
-                  <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <div className="mt-4 pt-3 border-t border-[#f1f5f9] flex items-center justify-between text-xs">
                     <span className="text-[11px] text-slate-400">By {res.uploader.name}</span>
                     <Link
                       href={`/resources/${res.id}`}
-                      className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1"
+                      className="text-[#4f46e5] hover:text-[#4338ca] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-all"
                     >
-                      View <ArrowRight className="w-3 h-3" />
+                      <span>Study Now</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
                 </div>
@@ -231,7 +228,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Content Layout with Sidebar and Resource Grid */}
+        {/* 12-Column Layout: Sidebar & Resource Grid */}
         <div className="flex gap-8 items-start">
           {/* Desktop Category Sidebar */}
           <Sidebar

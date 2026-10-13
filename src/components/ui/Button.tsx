@@ -3,7 +3,7 @@
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'teal' | 'danger';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'emerald' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
@@ -21,21 +21,28 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] select-none cursor-pointer';
+  // Academic Precision buttons: 8px/rounded-xl, micro-scaling on hover, clean borders
+  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none cursor-pointer';
 
   const variants = {
-    primary: 'bg-[#0a1128] text-white hover:bg-[#15224a] focus:ring-[#0a1128] shadow-sm hover:shadow',
-    secondary: 'bg-blue-50 text-blue-700 hover:bg-blue-100 focus:ring-blue-500 border border-blue-200/60',
-    outline: 'border border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 focus:ring-slate-400 bg-white',
-    ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus:ring-slate-300',
-    teal: 'bg-[#0d9488] text-white hover:bg-[#0f766e] focus:ring-[#0d9488] shadow-sm hover:shadow',
+    // Primary: Background #4f46e5, hover #4338ca, active #3730a3
+    primary: 'bg-[#4f46e5] text-white hover:bg-[#4338ca] active:bg-[#3730a3] focus:ring-[#4f46e5] hover:scale-[1.01] shadow-sm',
+    // Secondary Discovery: Background #f5f3ff, border 1px solid #ddd6fe, text #7c3aed, hover #ede9fe
+    secondary: 'bg-[#f5f3ff] text-[#7c3aed] border border-[#ddd6fe] hover:bg-[#ede9fe] focus:ring-[#7c3aed]',
+    // Outline / Neutral: Background #ffffff, border 1px solid #e2e8f0, text #0f172a, hover border #cbd5e1, hover bg #f8fafc
+    outline: 'border border-[#e2e8f0] text-[#0f172a] hover:border-[#cbd5e1] hover:bg-[#f8fafc] focus:ring-slate-300 bg-white shadow-xs',
+    // Ghost
+    ghost: 'text-[#475569] hover:bg-slate-100 hover:text-[#0f172a] focus:ring-slate-300',
+    // Emerald / Verified
+    emerald: 'bg-[#ecfdf5] text-[#047857] border border-[#a7f3d0] hover:bg-[#d1fae5] focus:ring-[#10b981]',
+    // Danger
     danger: 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 focus:ring-rose-500',
   };
 
   const sizes = {
-    sm: 'text-xs px-3 py-1.5 gap-1.5',
-    md: 'text-sm px-4 py-2.5 gap-2',
-    lg: 'text-base px-5 py-3 gap-2.5 font-semibold',
+    sm: 'text-xs h-9 px-3 gap-1.5',
+    md: 'text-sm h-11 px-4 gap-2',
+    lg: 'text-base h-12 px-6 gap-2.5 font-semibold',
   };
 
   return (
@@ -50,10 +57,10 @@ export const Button: React.FC<ButtonProps> = ({
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
         </svg>
       ) : leftIcon ? (
-        <span>{leftIcon}</span>
+        <span className="shrink-0">{leftIcon}</span>
       ) : null}
-      {children}
-      {rightIcon && !isLoading ? <span>{rightIcon}</span> : null}
+      <span>{children}</span>
+      {rightIcon && !isLoading ? <span className="shrink-0">{rightIcon}</span> : null}
     </button>
   );
 };

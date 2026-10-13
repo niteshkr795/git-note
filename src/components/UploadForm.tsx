@@ -13,7 +13,7 @@ import {
   AlertCircle,
   CheckCircle2,
   FileCheck,
-  ShieldAlert,
+  ShieldCheck,
   ArrowRight,
   Info,
 } from 'lucide-react';
@@ -186,29 +186,29 @@ export const UploadForm: React.FC = () => {
 
   if (uploadSuccessResource) {
     return (
-      <div className="bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-12 text-center max-w-xl mx-auto shadow-sm">
-        <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4 border border-emerald-200">
+      <div className="bg-white border border-[#e2e8f0] rounded-2xl p-8 sm:p-12 text-center max-w-xl mx-auto shadow-xs">
+        <div className="w-16 h-16 rounded-2xl bg-[#ecfdf5] text-[#047857] flex items-center justify-center mx-auto mb-4 border border-[#a7f3d0]">
           <CheckCircle2 className="w-10 h-10" />
         </div>
 
-        <span className="text-xs font-bold uppercase tracking-wider text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-200/60">
+        <span className="text-xs font-semibold uppercase tracking-wider text-[#047857] bg-[#ecfdf5] px-3 py-1 rounded-full border border-[#a7f3d0]">
           Upload Complete
         </span>
 
-        <h3 className="text-xl font-bold text-slate-900 mt-3 mb-2">
-          Resource Successfully Shared!
+        <h3 className="text-xl font-bold text-[#0f172a] mt-3 mb-2 tracking-tight">
+          Resource Successfully Cataloged!
         </h3>
 
-        <p className="text-sm text-slate-600 mb-6 leading-relaxed max-w-md mx-auto">
-          &quot;{uploadSuccessResource.title}&quot; has been cataloged and is now discoverable by your college peers in Explore.
+        <p className="text-sm text-[#475569] mb-6 leading-relaxed max-w-md mx-auto">
+          &quot;{uploadSuccessResource.title}&quot; is now indexed and immediately accessible by peer college students across campus.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             href={`/resources/${uploadSuccessResource.id}`}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#0a1128] hover:bg-[#15224a] text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#4f46e5] hover:bg-[#4338ca] text-white text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-sm"
           >
-            <span>View Resource Page</span>
+            <span>View Resource Document</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
 
@@ -229,11 +229,11 @@ export const UploadForm: React.FC = () => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Safety & Academic Guidelines Banner */}
-      <div className="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-blue-900">
-        <ShieldAlert className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+      <div className="bg-[#eef2ff] border border-[#e0e7ff] rounded-2xl p-4 flex items-start gap-3.5 text-xs text-[#312e81]">
+        <ShieldCheck className="w-5 h-5 text-[#4f46e5] shrink-0 mt-0.5" />
         <div className="leading-relaxed">
-          <p className="font-bold text-blue-950">Student Contributor Guidelines</p>
-          <p className="text-blue-800 mt-0.5">
+          <p className="font-bold text-[#1e1b4b]">Academic Contributor Guidelines</p>
+          <p className="text-[#4338ca] mt-0.5">
             Share high-quality study materials you have permission to distribute (e.g. solved papers, handwritten lecture notes, lab sheets). Do not upload confidential exams or commercial copyright texts.
           </p>
         </div>
@@ -254,12 +254,12 @@ export const UploadForm: React.FC = () => {
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all duration-200 ${
+            className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 ${
               isDragging
-                ? 'border-blue-600 bg-blue-50/50 scale-[1.01]'
+                ? 'border-[#4f46e5] bg-[#eef2ff]/70 scale-[1.01]'
                 : errors.file
                 ? 'border-rose-300 bg-rose-50/30 hover:bg-rose-50/50'
-                : 'border-slate-300 hover:border-blue-500 hover:bg-slate-50/80 bg-white'
+                : 'border-[#cbd5e1] hover:border-[#4f46e5] hover:bg-[#faf8ff] bg-white'
             }`}
           >
             <input
@@ -274,25 +274,25 @@ export const UploadForm: React.FC = () => {
               }}
             />
 
-            <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3 border border-blue-100 shadow-sm">
+            <div className="w-14 h-14 rounded-2xl bg-[#eef2ff] text-[#4f46e5] flex items-center justify-center mx-auto mb-3 border border-[#e0e7ff] shadow-xs">
               <UploadCloud className="w-7 h-7" />
             </div>
 
-            <p className="text-sm font-bold text-slate-800 mb-1">
+            <p className="text-sm font-bold text-[#0f172a] mb-1">
               Click to select or drag and drop your document
             </p>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+            <p className="text-xs text-[#475569] max-w-sm mx-auto leading-relaxed">
               PDF, DOCX, or ZIP files up to 25 MB
             </p>
           </div>
         ) : (
-          <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 flex items-center justify-between gap-3">
+          <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#eef2ff] text-[#4f46e5] flex items-center justify-center shrink-0">
                 <FileCheck className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold text-slate-900 truncate">
+                <p className="text-xs font-bold text-[#0f172a] truncate">
                   {selectedFile.name}
                 </p>
                 <p className="text-[11px] text-slate-500">
@@ -338,11 +338,11 @@ export const UploadForm: React.FC = () => {
             setTitle(e.target.value);
             if (errors.title) setErrors((prev) => ({ ...prev, title: '' }));
           }}
-          placeholder="e.g. End-Term 2023 Solved Paper with BCNF Normalization & SQL Queries"
-          className={`w-full text-xs sm:text-sm p-3 rounded-xl border bg-white outline-none transition-all ${
+          placeholder="e.g. End-Term 2024 Solved Paper with BCNF Normalization & SQL Queries"
+          className={`w-full text-xs sm:text-sm p-3.5 rounded-xl border bg-white outline-none transition-all ${
             errors.title
               ? 'border-rose-400 focus:ring-2 focus:ring-rose-100'
-              : 'border-slate-200/90 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+              : 'border-[#cbd5e1] focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100'
           }`}
         />
         {errors.title && (
@@ -366,10 +366,10 @@ export const UploadForm: React.FC = () => {
               setSubject(e.target.value);
               if (errors.subject) setErrors((prev) => ({ ...prev, subject: '' }));
             }}
-            className={`w-full text-xs font-medium p-3 rounded-xl border bg-white outline-none transition-all cursor-pointer ${
+            className={`w-full text-xs font-medium p-3.5 rounded-xl border bg-white outline-none transition-all cursor-pointer ${
               errors.subject
                 ? 'border-rose-400 focus:ring-2 focus:ring-rose-100'
-                : 'border-slate-200/90 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                : 'border-[#cbd5e1] focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100'
             }`}
           >
             <option value="">Select University Subject</option>
@@ -395,7 +395,7 @@ export const UploadForm: React.FC = () => {
           <select
             value={semester}
             onChange={(e) => setSemester(e.target.value as Semester)}
-            className="w-full text-xs font-medium p-3 rounded-xl border border-slate-200/90 bg-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer"
+            className="w-full text-xs font-medium p-3.5 rounded-xl border border-[#cbd5e1] bg-white outline-none focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100 transition-all cursor-pointer"
           >
             {SEMESTERS.map((s) => (
               <option key={s} value={s}>
@@ -416,7 +416,7 @@ export const UploadForm: React.FC = () => {
           <select
             value={resourceType}
             onChange={(e) => setResourceType(e.target.value as ResourceType)}
-            className="w-full text-xs font-medium p-3 rounded-xl border border-slate-200/90 bg-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer"
+            className="w-full text-xs font-medium p-3.5 rounded-xl border border-[#cbd5e1] bg-white outline-none focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100 transition-all cursor-pointer"
           >
             {RESOURCE_TYPES.map((t) => (
               <option key={t} value={t}>
@@ -434,7 +434,7 @@ export const UploadForm: React.FC = () => {
           <select
             value={academicYear}
             onChange={(e) => setAcademicYear(e.target.value as AcademicYear)}
-            className="w-full text-xs font-medium p-3 rounded-xl border border-slate-200/90 bg-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer"
+            className="w-full text-xs font-medium p-3.5 rounded-xl border border-[#cbd5e1] bg-white outline-none focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100 transition-all cursor-pointer"
           >
             {ACADEMIC_YEARS.map((y) => (
               <option key={y} value={y}>
@@ -448,7 +448,7 @@ export const UploadForm: React.FC = () => {
       {/* Description Field */}
       <div>
         <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-          Description & Key Topics Covered <span className="text-rose-500">*</span>
+          Description & Syllabus Scope <span className="text-rose-500">*</span>
         </label>
         <textarea
           rows={4}
@@ -458,10 +458,10 @@ export const UploadForm: React.FC = () => {
             if (errors.description) setErrors((prev) => ({ ...prev, description: '' }));
           }}
           placeholder="Briefly describe what this document contains (e.g., covers Unit 3 & 4, includes tree rotation step-by-step proofs and university exam marks breakdown)..."
-          className={`w-full text-xs sm:text-sm p-3 rounded-xl border bg-white outline-none transition-all resize-y ${
+          className={`w-full text-xs sm:text-sm p-3.5 rounded-xl border bg-white outline-none transition-all resize-y ${
             errors.description
               ? 'border-rose-400 focus:ring-2 focus:ring-rose-100'
-              : 'border-slate-200/90 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+              : 'border-[#cbd5e1] focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100'
           }`}
         />
         {errors.description && (
@@ -482,23 +482,23 @@ export const UploadForm: React.FC = () => {
           value={tagsInput}
           onChange={(e) => setTagsInput(e.target.value)}
           placeholder="e.g. EndSem, Solved, Trees, DynamicProgramming (comma-separated)"
-          className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-200/90 bg-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+          className="w-full text-xs sm:text-sm p-3.5 rounded-xl border border-[#cbd5e1] bg-white outline-none focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100 transition-all"
         />
         <p className="text-[11px] text-slate-400 mt-1">
-          Separate tags with commas to make your resource easy to search.
+          Separate tags with commas to make your resource instantly searchable by classmates.
         </p>
       </div>
 
       {/* Upload Progress Indicator when uploading */}
       {isUploading && (
-        <div className="bg-blue-50/80 p-4 rounded-2xl border border-blue-200/80 space-y-2">
-          <div className="flex justify-between text-xs font-semibold text-blue-900">
+        <div className="bg-[#eef2ff] p-4 rounded-2xl border border-[#e0e7ff] space-y-2">
+          <div className="flex justify-between text-xs font-semibold text-[#312e81]">
             <span>Validating & Cataloging Resource...</span>
-            <span>{uploadProgress}%</span>
+            <span className="font-mono">{uploadProgress}%</span>
           </div>
-          <div className="w-full h-2 bg-blue-100 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-[#e0e7ff] rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-blue-600 to-teal-400 rounded-full transition-all duration-200"
+              className="h-full bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] rounded-full transition-all duration-200"
               style={{ width: `${uploadProgress}%` }}
             />
           </div>
@@ -506,7 +506,7 @@ export const UploadForm: React.FC = () => {
       )}
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#f1f5f9]">
         <Button
           type="button"
           variant="outline"

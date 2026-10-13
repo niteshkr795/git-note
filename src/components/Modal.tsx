@@ -47,19 +47,19 @@ export const Modal: React.FC<ModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-[#0f172a]/60 backdrop-blur-md transition-opacity"
         onClick={onClose}
       />
 
-      {/* Modal Dialog */}
+      {/* Modal Dialog (Surface Tier 3) */}
       <div
-        className={`relative bg-white rounded-3xl shadow-2xl border border-slate-100 w-full ${widthClasses[maxWidth]} overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200`}
+        className={`relative bg-white rounded-2xl shadow-[0_20px_25px_-5px_rgba(15,23,42,0.1),0_8px_10px_-6px_rgba(15,23,42,0.04)] border border-[#cbd5e1] w-full ${widthClasses[maxWidth]} overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         {title && (
-          <div className="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between">
-            <h3 className="text-base font-bold text-slate-900">{title}</h3>
+          <div className="px-6 py-4 border-b border-[#f1f5f9] flex items-center justify-between">
+            <h3 className="text-base font-bold text-[#0f172a] tracking-tight">{title}</h3>
             <button
               type="button"
               onClick={onClose}
@@ -70,7 +70,7 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         )}
 
-        {/* Content */}
+        {/* Content Body */}
         <div className="p-6">{children}</div>
       </div>
     </div>

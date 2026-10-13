@@ -1,53 +1,62 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
-import { BookOpen, Heart, Shield, Sparkles } from 'lucide-react';
+import Image from 'next/image';
+import { BookOpen, ShieldCheck, Sparkles, Heart } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-[#0a1128] text-slate-300 border-t border-slate-800/80 mt-16">
+    <footer className="bg-[#0f172a] text-slate-300 border-t border-white/10 mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand Info */}
           <div className="space-y-3 md:col-span-1">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-400">
-                <BookOpen className="w-4 h-4" />
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-white p-0.5 flex items-center justify-center shadow-md overflow-hidden">
+                <Image
+                  src="/logo.png"
+                  alt="GitNote Logo"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-contain rounded-lg"
+                />
               </div>
               <span className="font-bold text-lg text-white font-mono">
-                Git<span className="text-teal-400">Note</span>
+                Git<span className="text-[#818cf8]">Note</span>
               </span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              A centralized, student-driven platform making academic resources easier to discover, access, and share.
+              A modern academic resource exchange prioritizing university exam readiness, verified syllabus alignment, and student collaboration.
             </p>
-            <p className="text-[11px] font-mono text-teal-400">
-              Learn. Share. Discover.
+            <p className="text-[11px] font-mono text-[#818cf8]">
+              Academic Precision • Learn. Share. Discover.
             </p>
           </div>
 
           {/* Academic Categories */}
           <div>
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">
-              Resource Hub
+              Academic Library
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
-                <Link href="/" className="hover:text-teal-300 transition-colors">
+                <Link href="/" className="hover:text-white transition-colors">
                   Previous Year Papers (PYQ)
                 </Link>
               </li>
               <li>
-                <Link href="/" className="hover:text-teal-300 transition-colors">
+                <Link href="/" className="hover:text-white transition-colors">
                   Handwritten Class Notes
                 </Link>
               </li>
               <li>
-                <Link href="/" className="hover:text-teal-300 transition-colors">
-                  Lab Manuals & Code
+                <Link href="/" className="hover:text-white transition-colors">
+                  Lab Manuals & Practical Code
                 </Link>
               </li>
               <li>
-                <Link href="/" className="hover:text-teal-300 transition-colors">
+                <Link href="/" className="hover:text-white transition-colors">
                   Assignment Solutions
                 </Link>
               </li>
@@ -57,26 +66,26 @@ export const Footer: React.FC = () => {
           {/* Quick Links */}
           <div>
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">
-              Platform
+              Platform Hub
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
-                <Link href="/" className="hover:text-teal-300 transition-colors">
-                  Explore Library
+                <Link href="/" className="hover:text-white transition-colors">
+                  Explore Collections
                 </Link>
               </li>
               <li>
-                <Link href="/upload" className="hover:text-teal-300 transition-colors">
-                  Upload Material
+                <Link href="/upload" className="hover:text-white transition-colors">
+                  Upload Notes & Solns
                 </Link>
               </li>
               <li>
-                <Link href="/profile" className="hover:text-teal-300 transition-colors">
-                  Student Profile
+                <Link href="/profile" className="hover:text-white transition-colors">
+                  Student Profile & Karma
                 </Link>
               </li>
               <li>
-                <Link href="/login" className="hover:text-teal-300 transition-colors">
+                <Link href="/login" className="hover:text-white transition-colors">
                   Account Sign In
                 </Link>
               </li>
@@ -89,20 +98,21 @@ export const Footer: React.FC = () => {
               Academic Integrity
             </h4>
             <p className="text-xs text-slate-400 leading-relaxed mb-3">
-              Built for college students to foster peer learning. Uploaded materials are monitored by community guidelines.
+              Curated for college students to foster peer learning. Uploaded materials adhere to university course syllabi.
             </p>
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <Shield className="w-4 h-4 text-teal-400" />
+            <div className="flex items-center gap-2 text-xs text-[#34d399]">
+              <ShieldCheck className="w-4 h-4 text-[#10b981]" />
               <span>Verified Student Network</span>
             </div>
           </div>
         </div>
 
-        <div className="pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>© 2025 GitNote. Academic Resource-Sharing Platform • Phase 1 MVP.</p>
-          <p className="flex items-center gap-1">
-            Built for college students with Next.js & Tailwind CSS
-          </p>
+        {/* Bottom Bar */}
+        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+          <p>© 2026 GitNote. Designed with Academic Precision.</p>
+          <div className="flex items-center gap-1 text-slate-400">
+            <span>Crafted for collegiate success</span>
+          </div>
         </div>
       </div>
     </footer>
