@@ -14,6 +14,8 @@ import {
   ShieldCheck,
   RefreshCw,
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 export const PRESET_AVATARS = [
   {
@@ -73,6 +75,7 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
   displayName,
   onSaveAvatar,
 }) => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'upload' | 'presets' | 'url'>('upload');
   const [selectedAvatar, setSelectedAvatar] = useState<string>(currentAvatar);
   const [customUrlInput, setCustomUrlInput] = useState<string>('');
@@ -91,7 +94,7 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
     }
   }, [isOpen, currentAvatar]);
 
-  // Client-side image crop to 1:1 square & compress to lightweight WebP/JPEG data URL
+  // Client-side image crop to 1:1 square & upload to Supabase storage for a lightweight public URL
   const processImageFile = (file: File) => {
     if (!file.type.startsWith('image/')) {
       alert('Please upload a valid image file (PNG, JPG, WEBP, GIF).');
@@ -116,7 +119,6 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
           const ctx = canvas.getContext('2d');
 
           if (!ctx) {
-            setSelectedAvatar(e.target?.result as string);
             setIsProcessing(false);
             return;
           }
@@ -127,11 +129,56 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
           const startY = (img.height - minSide) / 2;
 
           ctx.drawImage(img, startX, startY, minSide, minSide, 0, 0, maxDim, maxDim);
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.88);
-          setSelectedAvatar(compressedDataUrl);
-        } catch {
-          setSelectedAvatar(e.target?.result as string);
-        } finally {
+
+          canvas.toBlob(async (blob) => {
+            if (!blob) {
+              setIsProcessing(false);
+              return;
+            }
+
+            // If user is authenticated, upload to Supabase 'avatars' storage bucket
+            if (user && isSupabaseConfigured) {
+              try {
+                const filePath = `${user.id}/avatar-${Date.now()}.jpg`;
+                const { data, error } = await supabase.storage
+                  .from('avatars')
+                  .upload(filePath, blob, {
+                    contentType: 'image/jpeg',
+                    upsert: true,
+                  });
+
+                if (error) {
+                  console.warn('[GitNote] Storage upload error:', error.message);
+                  alert(
+                    `Could not upload to cloud storage (${error.message}). Please create the 'avatars' public bucket in Supabase or choose one of our verified student presets.`
+                  );
+                  setIsProcessing(false);
+                  return;
+                }
+
+                const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(data.path);
+                setSelectedAvatar(urlData.publicUrl);
+              } catch (uploadErr: any) {
+                console.error('[GitNote] Upload error:', uploadErr);
+                alert('Upload error: ' + (uploadErr?.message || 'Failed to upload photo.'));
+              } finally {
+                setIsProcessing(false);
+              }
+            } else {
+              // Guest/demo preview: use thumbnail (max 150px)
+              const thumbCanvas = document.createElement('canvas');
+              thumbCanvas.width = 150;
+              thumbCanvas.height = 150;
+              const tCtx = thumbCanvas.getContext('2d');
+              if (tCtx) {
+                tCtx.drawImage(canvas, 0, 0, 150, 150);
+                setSelectedAvatar(thumbCanvas.toDataURL('image/jpeg', 0.6));
+              }
+              setIsProcessing(false);
+            }
+          }, 'image/jpeg', 0.85);
+        } catch (err) {
+          console.error(err);
           setIsProcessing(false);
         }
       };

@@ -196,6 +196,17 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       }
 
+      // Auto-cleanup: If auth metadata contains an oversized base64 data URL, wipe it so cookies don't balloon!
+      if (user && (user.user_metadata?.avatar_url?.startsWith('data:') || user.user_metadata?.avatar?.startsWith('data:'))) {
+        try {
+          await supabase.auth.updateUser({
+            data: { avatar_url: null, avatar: null },
+          });
+        } catch {
+          // ignore
+        }
+      }
+
       // 2. Fallback to auth metadata if logged in
       if (user) {
         setUserProfile((prev) => ({
@@ -282,15 +293,21 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           console.warn('[GitNote] Failed to update profiles table:', dbError.message);
         }
 
-        // Also update Supabase auth user_metadata
+        // Also update Supabase auth user_metadata SAFELY without bloated base64 data URLs
         try {
+          // CRITICAL: NEVER store base64 data URLs in auth metadata!
+          // Supabase SSR encodes user_metadata directly into the JWT session cookie.
+          // Base64 strings exceed the 16KB cookie header limit and cause HTTP 494 REQUEST_HEADER_TOO_LARGE!
+          const isSafeUrl = typeof updates.avatar === 'string' && (updates.avatar.startsWith('http://') || updates.avatar.startsWith('https://'));
+          const safeAvatar = isSafeUrl ? updates.avatar : (updates.avatar === '' ? '' : null);
+
           await supabase.auth.updateUser({
             data: {
               ...(updates.name ? { full_name: updates.name } : {}),
               ...(updates.college ? { college: updates.college } : {}),
               ...(updates.branch ? { branch: updates.branch } : {}),
               ...(updates.semester ? { semester: updates.semester } : {}),
-              ...(updates.avatar !== undefined ? { avatar_url: updates.avatar, avatar: updates.avatar } : {}),
+              ...(updates.avatar !== undefined ? { avatar_url: safeAvatar, avatar: safeAvatar } : {}),
             },
           });
         } catch (metaErr) {
