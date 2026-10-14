@@ -10,12 +10,16 @@ interface ResourceGridProps {
   resources: Resource[];
   onResetFilters?: () => void;
   emptyType?: 'search' | 'bookmarks' | 'uploads' | 'generic';
+  canDelete?: boolean;
+  onDelete?: (resource: Resource) => void;
 }
 
 export const ResourceGrid: React.FC<ResourceGridProps> = ({
   resources,
   onResetFilters,
   emptyType = 'search',
+  canDelete,
+  onDelete,
 }) => {
   const [previewResource, setPreviewResource] = useState<Resource | null>(null);
 
@@ -30,6 +34,8 @@ export const ResourceGrid: React.FC<ResourceGridProps> = ({
           <ResourceCard
             key={resource.id}
             resource={resource}
+            canDelete={canDelete || emptyType === 'uploads'}
+            onDelete={onDelete}
             onQuickPreview={(res) => setPreviewResource(res)}
           />
         ))}

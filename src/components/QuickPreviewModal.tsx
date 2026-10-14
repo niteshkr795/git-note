@@ -6,6 +6,8 @@ import { Modal } from '@/components/Modal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { useResources } from '@/context/ResourceContext';
+import { useAuth } from '@/context/AuthContext';
+import { DeleteResourceModal } from '@/components/DeleteResourceModal';
 import {
   FileText,
   Download,
@@ -18,6 +20,7 @@ import {
   Sparkles,
   ExternalLink,
   CheckCircle2,
+  Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -32,11 +35,18 @@ export const QuickPreviewModal: React.FC<QuickPreviewModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { toggleBookmark, isBookmarked, mockDownload, addToast } = useResources();
+  const { user } = useAuth();
+  const { toggleBookmark, isBookmarked, mockDownload, addToast, userProfile } = useResources();
   const [currentPage, setCurrentPage] = useState(1);
   const [zoomLevel, setZoomLevel] = useState(100);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   if (!resource) return null;
+
+  const isOwner = Boolean(
+    (user && (resource.uploader.id === user.id || resource.uploader.name === (user.user_metadata?.full_name || user.email?.split('@')[0]))) ||
+    (!user && (resource.uploader.id === userProfile.id || resource.uploader.name === userProfile.name))
+  );
 
   const totalPages = resource.pageCount || 12;
   const bookmarked = isBookmarked(resource.id);
@@ -101,6 +111,18 @@ export const QuickPreviewModal: React.FC<QuickPreviewModalProps> = ({
             >
               Download PDF
             </Button>
+
+            {isOwner && (
+              <button
+                type="button"
+                onClick={() => setIsDeleteModalOpen(true)}
+                className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition-colors cursor-pointer"
+                title="Delete this document"
+                aria-label="Delete this document"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -217,6 +239,17 @@ export const QuickPreviewModal: React.FC<QuickPreviewModalProps> = ({
           </Button>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteResourceModal
+        resource={resource}
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onDeleted={() => {
+          setIsDeleteModalOpen(false);
+          onClose();
+        }}
+      />
     </Modal>
   );
 };

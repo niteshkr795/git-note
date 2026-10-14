@@ -239,13 +239,18 @@ function ProfileContent() {
       {/* Tab Panels */}
       {activeTab === 'uploads' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-[#0f172a] tracking-tight">
-              Documents Uploaded by You
-            </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-sm font-bold text-[#0f172a] tracking-tight">
+                Documents Uploaded by You
+              </h3>
+              <p className="text-xs text-slate-500">
+                Manage, preview, or remove your contributed PDFs and study notes from the platform.
+              </p>
+            </div>
             <Link
               href="/upload"
-              className="text-xs font-semibold text-[#4f46e5] hover:text-[#4338ca] flex items-center gap-1"
+              className="text-xs font-semibold text-[#4f46e5] hover:text-[#4338ca] flex items-center gap-1 shrink-0"
             >
               + Upload New Resource
             </Link>
@@ -254,6 +259,7 @@ function ProfileContent() {
           <ResourceGrid
             resources={uploadedResources}
             emptyType="uploads"
+            canDelete={true}
           />
         </div>
       )}

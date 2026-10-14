@@ -1,10 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Resource } from '@/types';
 import { Badge } from '@/components/ui/Badge';
 import { useResources } from '@/context/ResourceContext';
+import { useAuth } from '@/context/AuthContext';
+import { DeleteResourceModal } from '@/components/DeleteResourceModal';
 import {
   Bookmark,
   Download,
@@ -13,19 +15,33 @@ import {
   Calendar,
   GraduationCap,
   CheckCircle2,
+  Trash2,
 } from 'lucide-react';
 
 interface ResourceCardProps {
   resource: Resource;
   onQuickPreview?: (resource: Resource) => void;
+  canDelete?: boolean;
+  onDelete?: (resource: Resource) => void;
 }
 
 export const ResourceCard: React.FC<ResourceCardProps> = ({
   resource,
   onQuickPreview,
+  canDelete,
+  onDelete,
 }) => {
-  const { toggleBookmark, isBookmarked, mockDownload } = useResources();
+  const { user } = useAuth();
+  const { toggleBookmark, isBookmarked, mockDownload, userProfile } = useResources();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const bookmarked = isBookmarked(resource.id);
+
+  // Determine if the current active student owns this resource
+  const isOwner = Boolean(
+    canDelete ||
+      (user && (resource.uploader.id === user.id || resource.uploader.name === (user.user_metadata?.full_name || user.email?.split('@')[0]))) ||
+      (!user && (resource.uploader.id === userProfile.id || resource.uploader.name === userProfile.name))
+  );
 
   return (
     <div className="group bg-white rounded-2xl border border-[#e2e8f0] hover:border-[#cbd5e1] hover:shadow-[0_10px_20px_-3px_rgba(79,70,229,0.08),0_4px_6px_-4px_rgba(15,23,42,0.04)] transition-all duration-200 flex flex-col justify-between overflow-hidden relative">
@@ -159,8 +175,35 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
             <Download className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">PDF</span>
           </button>
+
+          {isOwner && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDeleteModalOpen(true);
+              }}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+              title="Delete Document"
+              aria-label="Delete this document"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteResourceModal
+        resource={resource}
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onDeleted={(deleted) => {
+          setIsDeleteModalOpen(false);
+          onDelete?.(deleted);
+        }}
+      />
     </div>
   );
 };

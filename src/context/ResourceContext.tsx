@@ -21,6 +21,7 @@ interface ResourceContextType {
   toggleBookmark: (resourceId: string) => Promise<void>;
   isBookmarked: (resourceId: string) => boolean;
   addResource: (newResource: Omit<Resource, 'id' | 'createdAt' | 'downloadCount' | 'viewCount' | 'rating' | 'uploader'>) => Resource;
+  deleteResource: (resourceId: string) => Promise<{ success: boolean; error?: string }>;
   reportResource: (resourceId: string, reason: string, details: string) => void;
   toasts: ToastMessage[];
   addToast: (type: ToastMessage['type'], title: string, message: string) => void;
@@ -254,6 +255,61 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return newResource;
   };
 
+  const deleteResource = async (resourceId: string): Promise<{ success: boolean; error?: string }> => {
+    const target = resources.find((r) => r.id === resourceId);
+    const targetTitle = target?.title || 'Resource';
+
+    try {
+      // 1. Delete associated file from Supabase Storage bucket if present
+      if (target?.storagePath && isSupabaseConfigured) {
+        try {
+          const { error: storageErr } = await supabase.storage
+            .from('study-resources')
+            .remove([target.storagePath]);
+          if (storageErr) {
+            console.warn('[GitNote] Storage remove warning:', storageErr.message);
+          }
+        } catch (storageErr) {
+          console.warn('[GitNote] Storage remove error:', storageErr);
+        }
+      }
+
+      // 2. Delete database record from Supabase 'resources' table
+      if (isSupabaseConfigured && user) {
+        const { error: dbError } = await supabase
+          .from('resources')
+          .delete()
+          .eq('id', resourceId);
+
+        if (dbError) {
+          console.error('[GitNote] Database delete error:', dbError);
+          addToast('error', 'Delete Failed', dbError.message || 'Could not delete resource from database.');
+          return { success: false, error: dbError.message };
+        }
+      }
+
+      // 3. Remove resource from local memory state
+      setResources((prev) => prev.filter((r) => r.id !== resourceId));
+
+      // 4. Update user profile counter
+      setUserProfile((prev) => ({
+        ...prev,
+        stats: {
+          ...prev.stats,
+          totalUploads: Math.max(0, prev.stats.totalUploads - 1),
+        },
+      }));
+
+      addToast('success', 'Document Deleted', `"${targetTitle}" was removed successfully.`);
+      return { success: true };
+    } catch (err: any) {
+      console.error('[GitNote] Unexpected error deleting resource:', err);
+      const errorMsg = err?.message || 'An unexpected error occurred while deleting.';
+      addToast('error', 'Delete Error', errorMsg);
+      return { success: false, error: errorMsg };
+    }
+  };
+
   const reportResource = (resourceId: string, reason: string, details: string) => {
     addToast('info', 'Report Received', 'Thank you. Academic moderators will review this document within 24 hours.');
   };
@@ -353,6 +409,7 @@ Downloaded via GitNote - Learn. Share. Discover.
         toggleBookmark,
         isBookmarked,
         addResource,
+        deleteResource,
         reportResource,
         toasts,
         addToast,

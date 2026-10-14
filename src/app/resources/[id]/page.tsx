@@ -4,11 +4,13 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useResources } from '@/context/ResourceContext';
+import { useAuth } from '@/context/AuthContext';
 import { Resource } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { ReportModal } from '@/components/ReportModal';
+import { DeleteResourceModal } from '@/components/DeleteResourceModal';
 import {
   FileText,
   Download,
@@ -29,17 +31,20 @@ import {
   Sparkles,
   ArrowLeft,
   BookOpen,
+  Trash2,
 } from 'lucide-react';
 
 function ResourceDetailsContent() {
   const params = useParams();
   const router = useRouter();
   const resourceId = params?.id as string;
-  const { resources, toggleBookmark, isBookmarked, mockDownload, addToast } = useResources();
+  const { user } = useAuth();
+  const { resources, toggleBookmark, isBookmarked, mockDownload, addToast, userProfile } = useResources();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [zoomLevel, setZoomLevel] = useState(100);
   const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [dbResource, setDbResource] = useState<Resource | null>(null);
   const [loadingDb, setLoadingDb] = useState(false);
 
@@ -146,6 +151,12 @@ function ResourceDetailsContent() {
 
   const bookmarked = isBookmarked(resource.id);
   const totalPages = resource.pageCount || 16;
+
+  // Determine if the currently signed-in user uploaded this document
+  const isOwner = Boolean(
+    (user && (resource.uploader.id === user.id || resource.uploader.name === (user.user_metadata?.full_name || user.email?.split('@')[0]))) ||
+    (!user && (resource.uploader.id === userProfile.id || resource.uploader.name === userProfile.name))
+  );
 
   // Find related resources in the same subject or semester
   const relatedResources = resources
@@ -272,6 +283,18 @@ function ResourceDetailsContent() {
                 Share
               </Button>
             </div>
+
+            {isOwner && (
+              <Button
+                variant="danger"
+                size="md"
+                onClick={() => setIsDeleteModalOpen(true)}
+                leftIcon={<Trash2 className="w-4 h-4" />}
+                className="w-full shadow-xs font-semibold"
+              >
+                Delete Document
+              </Button>
+            )}
 
             <button
               type="button"
@@ -537,6 +560,16 @@ function ResourceDetailsContent() {
         onClose={() => setIsReportOpen(false)}
         resourceId={resource.id}
         resourceTitle={resource.title}
+      />
+
+      {/* Delete Resource Confirmation Dialog */}
+      <DeleteResourceModal
+        resource={resource}
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onDeleted={() => {
+          router.push('/profile?tab=uploads');
+        }}
       />
     </div>
   );
