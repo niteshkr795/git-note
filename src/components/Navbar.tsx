@@ -28,6 +28,7 @@ export const Navbar: React.FC = () => {
   const displayName = user
     ? user.user_metadata?.full_name || user.email?.split('@')[0] || userProfile.name
     : userProfile.name;
+  const displayAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.avatar || userProfile.avatar;
   const displayInitial = (displayName || 'S').charAt(0).toUpperCase();
 
   const handleSignOut = async () => {
@@ -140,7 +141,11 @@ export const Navbar: React.FC = () => {
                   className="flex items-center gap-2 pl-2 pr-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all group"
                 >
                   <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-[10px] font-bold text-white shadow-2xs overflow-hidden">
-                    {displayInitial}
+                    {displayAvatar ? (
+                      <img src={displayAvatar} alt={displayName} className="w-full h-full object-cover" />
+                    ) : (
+                      displayInitial
+                    )}
                   </div>
                   <span className="text-xs font-medium text-slate-200 group-hover:text-white max-w-[120px] truncate">
                     {displayName.split(' ')[0]}

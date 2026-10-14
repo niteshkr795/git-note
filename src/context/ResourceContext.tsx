@@ -18,6 +18,7 @@ interface ResourceContextType {
   isLoading: boolean;
   refreshResources: () => Promise<void>;
   userProfile: UserProfile;
+  updateUserProfile: (updates: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
   toggleBookmark: (resourceId: string) => Promise<void>;
   isBookmarked: (resourceId: string) => boolean;
   addResource: (newResource: Omit<Resource, 'id' | 'createdAt' | 'downloadCount' | 'viewCount' | 'rating' | 'uploader'>) => Resource;
@@ -163,6 +164,146 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     fetchResources();
   }, [fetchResources]);
+
+  // Synchronize authenticated user profile with Supabase and localStorage
+  useEffect(() => {
+    const loadProfile = async () => {
+      // 1. Try Supabase if authenticated
+      if (user && isSupabaseConfigured) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (data && !error) {
+            setUserProfile((prev) => ({
+              ...prev,
+              id: user.id,
+              name: data.full_name || user.user_metadata?.full_name || prev.name,
+              email: user.email || prev.email,
+              avatar: data.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.avatar || prev.avatar,
+              college: data.college || user.user_metadata?.college || prev.college,
+              branch: data.branch || user.user_metadata?.branch || prev.branch,
+              semester: (data.semester || user.user_metadata?.semester || prev.semester) as any,
+              bio: data.bio || prev.bio,
+            }));
+            return;
+          }
+        } catch (e) {
+          console.warn('[GitNote] Could not fetch profile from Supabase:', e);
+        }
+      }
+
+      // 2. Fallback to auth metadata if logged in
+      if (user) {
+        setUserProfile((prev) => ({
+          ...prev,
+          id: user.id,
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || prev.name,
+          email: user.email || prev.email,
+          avatar: user.user_metadata?.avatar_url || user.user_metadata?.avatar || prev.avatar,
+          college: user.user_metadata?.college || prev.college,
+          branch: user.user_metadata?.branch || prev.branch,
+          semester: (user.user_metadata?.semester || prev.semester) as any,
+        }));
+      } else {
+        // 3. Fallback to localStorage in guest/demo mode
+        try {
+          const saved = typeof window !== 'undefined' ? localStorage.getItem('gitnote_user_profile') : null;
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            setUserProfile((prev) => ({ ...prev, ...parsed }));
+          }
+        } catch {
+          // ignore
+        }
+      }
+    };
+
+    loadProfile();
+  }, [user]);
+
+  const updateUserProfile = async (updates: Partial<UserProfile>): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // 1. Update React state immediately
+      setUserProfile((prev) => {
+        const next = { ...prev, ...updates };
+        try {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('gitnote_user_profile', JSON.stringify(next));
+          }
+        } catch {}
+        return next;
+      });
+
+      // 2. Synchronize resources uploaded by this user so changes reflect everywhere
+      setResources((prev) =>
+        prev.map((r) => {
+          const isUserUploader =
+            (user && r.uploader.id === user.id) ||
+            r.uploader.name === userProfile.name ||
+            (user?.user_metadata?.full_name && r.uploader.name === user.user_metadata.full_name);
+
+          if (isUserUploader) {
+            return {
+              ...r,
+              uploader: {
+                ...r.uploader,
+                ...(updates.avatar !== undefined ? { avatar: updates.avatar } : {}),
+                ...(updates.name ? { name: updates.name } : {}),
+                ...(updates.college ? { college: updates.college } : {}),
+                ...(updates.branch ? { branch: updates.branch } : {}),
+                ...(updates.semester ? { semester: updates.semester } : {}),
+              },
+            };
+          }
+          return r;
+        })
+      );
+
+      // 3. Persist to Supabase if logged in
+      if (user && isSupabaseConfigured) {
+        const dbUpdates: Record<string, any> = {};
+        if (updates.name !== undefined) dbUpdates.full_name = updates.name;
+        if (updates.college !== undefined) dbUpdates.college = updates.college;
+        if (updates.branch !== undefined) dbUpdates.branch = updates.branch;
+        if (updates.semester !== undefined) dbUpdates.semester = updates.semester;
+        if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
+        if (updates.avatar !== undefined) dbUpdates.avatar_url = updates.avatar;
+
+        const { error: dbError } = await supabase
+          .from('profiles')
+          .update(dbUpdates)
+          .eq('id', user.id);
+
+        if (dbError) {
+          console.warn('[GitNote] Failed to update profiles table:', dbError.message);
+        }
+
+        // Also update Supabase auth user_metadata
+        try {
+          await supabase.auth.updateUser({
+            data: {
+              ...(updates.name ? { full_name: updates.name } : {}),
+              ...(updates.college ? { college: updates.college } : {}),
+              ...(updates.branch ? { branch: updates.branch } : {}),
+              ...(updates.semester ? { semester: updates.semester } : {}),
+              ...(updates.avatar !== undefined ? { avatar_url: updates.avatar, avatar: updates.avatar } : {}),
+            },
+          });
+        } catch (metaErr) {
+          console.warn('[GitNote] Could not update auth metadata:', metaErr);
+        }
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      console.error('[GitNote] Error updating profile:', err);
+      return { success: false, error: err?.message || 'Failed to update profile' };
+    }
+  };
 
   const toggleBookmark = async (resourceId: string) => {
     const target = resources.find((r) => r.id === resourceId);
@@ -406,6 +547,7 @@ Downloaded via GitNote - Learn. Share. Discover.
         isLoading,
         refreshResources: fetchResources,
         userProfile,
+        updateUserProfile,
         toggleBookmark,
         isBookmarked,
         addResource,
