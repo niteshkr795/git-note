@@ -16,6 +16,7 @@ import {
   LogOut,
   Search,
 } from 'lucide-react';
+import { InstallButton } from '@/components/pwa/InstallButton';
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
@@ -125,6 +126,7 @@ export const Navbar: React.FC = () => {
 
           {/* Right Header Section */}
           <div className="hidden sm:flex items-center gap-3">
+            <InstallButton />
             {user ? (
               <>
                 <Link
@@ -272,6 +274,10 @@ export const Navbar: React.FC = () => {
                 </Link>
               </div>
             )}
+
+            <div className="pt-2">
+              <InstallButton variant="pill" className="w-full justify-center py-2" />
+            </div>
           </div>
         </div>
       )}

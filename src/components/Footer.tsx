@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BookOpen, ShieldCheck, Sparkles, Heart } from 'lucide-react';
+import { InstallButton } from '@/components/pwa/InstallButton';
 
 export const Footer: React.FC = () => {
   return (
@@ -88,6 +89,9 @@ export const Footer: React.FC = () => {
                 <Link href="/login" className="hover:text-white transition-colors">
                   Account Sign In
                 </Link>
+              </li>
+              <li className="pt-1">
+                <InstallButton className="!p-0 !bg-transparent text-slate-400 hover:text-white" />
               </li>
             </ul>
           </div>

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
@@ -6,6 +6,7 @@ import { ResourceProvider } from '@/context/ResourceContext';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ToastContainer } from '@/components/ToastContainer';
+import { PwaManager } from '@/components/pwa/PwaManager';
 import React, { Suspense } from 'react';
 
 const inter = Inter({
@@ -14,12 +15,31 @@ const inter = Inter({
   variable: '--font-inter',
 });
 
+export const viewport: Viewport = {
+  themeColor: '#4f46e5',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export const metadata: Metadata = {
   title: 'GitNote — Academic Precision | Learn. Share. Discover.',
-  description: 'GitNote is a modern academic resource-sharing platform for college students. Access previous year question papers (PYQs), lecture notes, assignments, and lab manuals in one organized place.',
+  description:
+    'GitNote is a modern academic resource-sharing platform for college students. Access previous year question papers (PYQs), lecture notes, assignments, and lab manuals in one organized place.',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'GitNote',
+  },
   icons: {
-    icon: '/logo.png',
-    apple: '/logo.png',
+    icon: [
+      { url: '/icons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
 };
 
@@ -39,6 +59,7 @@ export default function RootLayout({
             <main className="flex-1">{children}</main>
             <Footer />
             <ToastContainer />
+            <PwaManager />
           </ResourceProvider>
         </AuthProvider>
       </body>

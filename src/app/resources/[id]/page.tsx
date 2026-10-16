@@ -146,29 +146,6 @@ function ResourceDetailsContent() {
 
   const resource = resources.find((r) => r.id === resourceId) || dbResource;
 
-  if (loadingDb) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <div className="w-10 h-10 border-4 border-[#4f46e5]/20 border-t-[#4f46e5] rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-slate-500 font-medium text-sm">Loading academic document from repository...</p>
-      </div>
-    );
-  }
-
-  if (!resource) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <h2 className="text-2xl font-bold text-[#0f172a] mb-2 tracking-tight">Resource Not Found</h2>
-        <p className="text-[#475569] mb-6 text-sm">
-          The requested academic document could not be located or may have been updated.
-        </p>
-        <Link href="/">
-          <Button variant="primary">Return to Explore</Button>
-        </Link>
-      </div>
-    );
-  }
-
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
@@ -195,6 +172,29 @@ function ResourceDetailsContent() {
       if (cleanupFn) cleanupFn();
     };
   }, [resource?.id, resource?.storagePath]);
+
+  if (loadingDb) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <div className="w-10 h-10 border-4 border-[#4f46e5]/20 border-t-[#4f46e5] rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-slate-500 font-medium text-sm">Loading academic document from repository...</p>
+      </div>
+    );
+  }
+
+  if (!resource) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <h2 className="text-2xl font-bold text-[#0f172a] mb-2 tracking-tight">Resource Not Found</h2>
+        <p className="text-[#475569] mb-6 text-sm">
+          The requested academic document could not be located or may have been updated.
+        </p>
+        <Link href="/">
+          <Button variant="primary">Return to Explore</Button>
+        </Link>
+      </div>
+    );
+  }
 
   const bookmarked = isBookmarked(resource.id);
   const totalPages = resource.pageCount || 16;
