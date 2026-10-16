@@ -6,7 +6,13 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Resource } from '@/types';
 import { formatFileSize } from '@/lib/formatters';
-import { SUBJECTS, SEMESTERS, ACADEMIC_YEARS } from '@/data/mockData';
+import {
+  SUBJECTS,
+  SEMESTERS,
+  ACADEMIC_YEARS,
+  normalizeSemester,
+  getSemesterVariants,
+} from '@/data/mockData';
 import { ResourceCard } from '@/components/ResourceCard';
 import { QuickPreviewModal } from '@/components/QuickPreviewModal';
 import { EmptyState } from '@/components/EmptyState';
@@ -62,12 +68,17 @@ interface SearchFilters {
 
 function mapDbRowToResource(dbRes: any): Resource {
   const uploaderData = Array.isArray(dbRes.uploader) ? dbRes.uploader[0] : dbRes.uploader;
+  const resourceSemester = normalizeSemester(
+    dbRes.semester,
+    normalizeSemester(uploaderData?.semester, 'Semester 1')
+  );
+
   return {
     id: dbRes.id,
     title: dbRes.title,
     description: dbRes.description || 'No description provided.',
     subject: dbRes.subject_name || dbRes.subject || 'General',
-    semester: dbRes.semester as any,
+    semester: resourceSemester as any,
     resourceType: (dbRes.resource_type === 'PYQ' ? 'PYQ' : dbRes.resource_type) as any,
     academicYear: dbRes.academic_year as any,
     fileFormat: (dbRes.file_format || 'PDF') as any,
@@ -86,7 +97,7 @@ function mapDbRowToResource(dbRes: any): Resource {
       avatar: uploaderData?.avatar_url || '',
       college: uploaderData?.college || 'SRMCEM Lucknow',
       branch: uploaderData?.branch || 'Computer Science & Engineering',
-      semester: uploaderData?.semester || dbRes.semester || 'Semester 4',
+      semester: normalizeSemester(uploaderData?.semester, resourceSemester),
       verified: Boolean(uploaderData?.is_verified ?? dbRes.is_verified),
     },
     isVerified: Boolean(dbRes.is_verified),
@@ -103,10 +114,10 @@ function SearchPageContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // URL query params initialization
+  // URL query params initialization with normalized semester
   const initialQuery = searchParams.get('q') || '';
   const initialUniv = searchParams.get('univ') || '';
-  const initialSem = searchParams.get('sem') || '';
+  const initialSem = normalizeSemester(searchParams.get('sem') || '');
   const initialSub = searchParams.get('sub') || '';
   const initialType = searchParams.get('type') || '';
   const initialYear = searchParams.get('year') || '';
@@ -169,7 +180,7 @@ function SearchPageContent() {
   useEffect(() => {
     const q = searchParams.get('q') || '';
     const univ = searchParams.get('univ') || '';
-    const sem = searchParams.get('sem') || '';
+    const sem = normalizeSemester(searchParams.get('sem') || '');
     const sub = searchParams.get('sub') || '';
     const type = searchParams.get('type') || '';
     const year = searchParams.get('year') || '';
@@ -298,9 +309,10 @@ function SearchPageContent() {
           query = query.eq('uploader.college', activeFilters.university);
         }
 
-        // Semester filter
+        // Semester filter with flexible multi-variant matching
         if (activeFilters.semester) {
-          query = query.eq('semester', activeFilters.semester);
+          const variants = getSemesterVariants(activeFilters.semester);
+          query = query.in('semester', variants);
         }
 
         // Subject filter
@@ -348,12 +360,60 @@ function SearchPageContent() {
         let { data, count, error } = await query;
 
         if (error) {
-          // Fallback to simple resources select if profile relation not available
-          const fallbackRes = await supabase
+          console.warn('[GitNote Search] Join query failed, running filtered fallback query:', error.message);
+          let fallbackQuery = supabase
             .from('resources')
-            .select('*', { count: 'exact' })
-            .order('created_at', { ascending: false })
-            .range(from, to);
+            .select('*', { count: 'exact' });
+
+          // Apply Semester filter on fallback
+          if (activeFilters.semester) {
+            const variants = getSemesterVariants(activeFilters.semester);
+            fallbackQuery = fallbackQuery.in('semester', variants);
+          }
+
+          // Apply Subject filter on fallback
+          if (activeFilters.subject) {
+            fallbackQuery = fallbackQuery.eq('subject_name', activeFilters.subject);
+          }
+
+          // Apply Resource Type filter on fallback
+          if (activeFilters.resourceType) {
+            const typeMapping = UI_RESOURCE_TYPES.find(
+              (t) => t.value === activeFilters.resourceType || t.label === activeFilters.resourceType
+            );
+            const dbType = typeMapping?.dbValue || activeFilters.resourceType;
+            fallbackQuery = fallbackQuery.eq('resource_type', dbType);
+          }
+
+          // Apply Academic Year filter on fallback
+          if (activeFilters.academicYear) {
+            fallbackQuery = fallbackQuery.eq('academic_year', activeFilters.academicYear);
+          }
+
+          // Apply Text search filter on fallback
+          if (activeFilters.query.trim()) {
+            const sanitized = activeFilters.query.trim().replace(/[%_(),]/g, '');
+            if (sanitized) {
+              fallbackQuery = fallbackQuery.or(
+                `title.ilike.%${sanitized}%,description.ilike.%${sanitized}%,subject_name.ilike.%${sanitized}%`
+              );
+            }
+          }
+
+          // Apply Sort By on fallback
+          if (activeFilters.sortBy === 'downloads') {
+            fallbackQuery = fallbackQuery.order('download_count', { ascending: false });
+          } else if (activeFilters.sortBy === 'relevant') {
+            fallbackQuery = fallbackQuery
+              .order('rating', { ascending: false })
+              .order('download_count', { ascending: false });
+          } else {
+            fallbackQuery = fallbackQuery.order('created_at', { ascending: false });
+          }
+
+          fallbackQuery = fallbackQuery.range(from, to);
+
+          const fallbackRes = await fallbackQuery;
           if (!fallbackRes.error) {
             data = fallbackRes.data;
             count = fallbackRes.count;
@@ -391,6 +451,18 @@ function SearchPageContent() {
   const handleSearchSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const updated = { ...formFilters };
+    setActiveFilters(updated);
+    pushFiltersToUrl(updated);
+    setCurrentPage(1);
+  };
+
+  // Handle Instant Filter Selection
+  const updateFilter = (filterKey: keyof SearchFilters, val: string) => {
+    const updated = {
+      ...formFilters,
+      [filterKey]: val,
+    };
+    setFormFilters(updated);
     setActiveFilters(updated);
     pushFiltersToUrl(updated);
     setCurrentPage(1);
@@ -651,10 +723,7 @@ function SearchPageContent() {
                     key={type.label}
                     type="button"
                     onClick={() => {
-                      setFormFilters((prev) => ({
-                        ...prev,
-                        resourceType: isSelected ? '' : type.value,
-                      }));
+                      updateFilter('resourceType', isSelected ? '' : type.value);
                     }}
                     className={`px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all cursor-pointer ${
                       isSelected
@@ -679,7 +748,7 @@ function SearchPageContent() {
               </label>
               <select
                 value={formFilters.university}
-                onChange={(e) => setFormFilters((prev) => ({ ...prev, university: e.target.value }))}
+                onChange={(e) => updateFilter('university', e.target.value)}
                 className="w-full h-10 px-3 bg-white border border-[#cbd5e1] rounded-xl text-xs text-[#0f172a] font-medium focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100 outline-none transition-all cursor-pointer"
               >
                 {UNIVERSITIES.map((univ) => (
@@ -698,7 +767,7 @@ function SearchPageContent() {
               </label>
               <select
                 value={formFilters.semester}
-                onChange={(e) => setFormFilters((prev) => ({ ...prev, semester: e.target.value }))}
+                onChange={(e) => updateFilter('semester', e.target.value)}
                 className="w-full h-10 px-3 bg-white border border-[#cbd5e1] rounded-xl text-xs text-[#0f172a] font-medium focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100 outline-none transition-all cursor-pointer"
               >
                 <option value="">All Semesters (1–8)</option>
@@ -718,7 +787,7 @@ function SearchPageContent() {
               </label>
               <select
                 value={formFilters.subject}
-                onChange={(e) => setFormFilters((prev) => ({ ...prev, subject: e.target.value }))}
+                onChange={(e) => updateFilter('subject', e.target.value)}
                 className="w-full h-10 px-3 bg-white border border-[#cbd5e1] rounded-xl text-xs text-[#0f172a] font-medium focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100 outline-none transition-all cursor-pointer"
               >
                 <option value="">All Subjects</option>
@@ -738,7 +807,7 @@ function SearchPageContent() {
               </label>
               <select
                 value={formFilters.academicYear}
-                onChange={(e) => setFormFilters((prev) => ({ ...prev, academicYear: e.target.value }))}
+                onChange={(e) => updateFilter('academicYear', e.target.value)}
                 className="w-full h-10 px-3 bg-white border border-[#cbd5e1] rounded-xl text-xs text-[#0f172a] font-medium focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100 outline-none transition-all cursor-pointer"
               >
                 <option value="">All Academic Years</option>
@@ -759,12 +828,7 @@ function SearchPageContent() {
               <div className="relative">
                 <select
                   value={formFilters.sortBy}
-                  onChange={(e) =>
-                    setFormFilters((prev) => ({
-                      ...prev,
-                      sortBy: e.target.value as SearchFilters['sortBy'],
-                    }))
-                  }
+                  onChange={(e) => updateFilter('sortBy', e.target.value)}
                   className="w-full h-10 pl-3 pr-8 bg-white border border-[#cbd5e1] rounded-xl text-xs text-[#0f172a] font-medium focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100 outline-none transition-all cursor-pointer"
                 >
                   <option value="recent">Latest Uploads</option>

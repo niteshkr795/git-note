@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Resource, UserProfile } from '@/types';
-import { INITIAL_RESOURCES, MOCK_USER_PROFILE } from '@/data/mockData';
+import { INITIAL_RESOURCES, MOCK_USER_PROFILE, normalizeSemester } from '@/data/mockData';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { formatFileSize } from '@/lib/formatters';
@@ -55,14 +55,19 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const mapDbResourceToModel = (item: any, bookmarkedSet?: Set<string>): Resource => {
     const uploaderData = Array.isArray(item.uploader) ? item.uploader[0] : item.uploader;
+    const resourceSemester = normalizeSemester(
+      item.semester,
+      normalizeSemester(uploaderData?.semester, 'Semester 1')
+    );
+
     return {
       id: item.id,
       title: item.title,
       description: item.description || '',
       subject: item.subject_name || item.subject || 'General Engineering',
-      semester: (item.semester || 'Semester 1') as any,
+      semester: resourceSemester as any,
       resourceType: (item.resource_type || 'Notes') as any,
-      academicYear: (item.academic_year || '2024-25') as any,
+      academicYear: (item.academic_year || '2025-26') as any,
       fileFormat: (item.file_format || 'PDF') as any,
       fileSize: formatFileSize(item.file_size_bytes, item.file_size),
       fileSizeBytes: item.file_size_bytes || undefined,
@@ -81,7 +86,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         avatar: uploaderData?.avatar_url || '',
         college: uploaderData?.college || 'SRMCEM Lucknow',
         branch: uploaderData?.branch || 'Computer Science & Engineering',
-        semester: uploaderData?.semester || item.semester || 'Semester 4',
+        semester: normalizeSemester(uploaderData?.semester, resourceSemester),
         verified: Boolean(uploaderData?.is_verified ?? item.is_verified),
       },
       previewContent: {

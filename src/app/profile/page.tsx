@@ -8,7 +8,7 @@ import { ResourceGrid } from '@/components/ResourceGrid';
 import { Modal } from '@/components/Modal';
 import { EditAvatarModal } from '@/components/EditAvatarModal';
 import { Button } from '@/components/ui/Button';
-import { SEMESTERS } from '@/data/mockData';
+import { SEMESTERS, normalizeSemester } from '@/data/mockData';
 import {
   UploadCloud,
   Bookmark,
@@ -41,7 +41,7 @@ function ProfileContent() {
   const displayName = userProfile.name || (user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Student Contributor');
   const displayCollege = userProfile.college || user?.user_metadata?.college || 'SRMCEM Lucknow';
   const displayBranch = userProfile.branch || user?.user_metadata?.branch || 'Computer Science & Engineering';
-  const displaySemester = userProfile.semester || user?.user_metadata?.semester || 'Semester 4';
+  const displaySemester = normalizeSemester(userProfile.semester || user?.user_metadata?.semester, 'Semester 1');
   const displayAvatar = userProfile.avatar || user?.user_metadata?.avatar_url || user?.user_metadata?.avatar || '';
 
   // Avatar Modal State

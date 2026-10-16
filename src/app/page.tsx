@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { formatFileSize } from '@/lib/formatters';
+import { normalizeSemester } from '@/data/mockData';
 import {
   FileText,
   GraduationCap,
@@ -116,6 +117,7 @@ export default function HomePage() {
             ...item,
             file_size: formatFileSize(item.file_size_bytes, item.file_size),
             subject_name: item.subject_name || item.subject || 'General',
+            semester: normalizeSemester(item.semester, 'Semester 1'),
             uploader: Array.isArray(item.uploader) ? item.uploader[0] : item.uploader,
           }));
           setRecentResources(mapped);

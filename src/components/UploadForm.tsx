@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useResources } from '@/context/ResourceContext';
@@ -25,17 +25,27 @@ import Link from 'next/link';
 export const UploadForm: React.FC = () => {
   const router = useRouter();
   const { user } = useAuth();
-  const { refreshResources, addToast } = useResources();
+  const { refreshResources, addToast, userProfile } = useResources();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form states
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [subject, setSubject] = useState('');
-  const [semester, setSemester] = useState<Semester>('Semester 4');
+  const [semester, setSemester] = useState<Semester>(
+    ((user?.user_metadata?.semester || userProfile?.semester || 'Semester 1') as Semester)
+  );
   const [resourceType, setResourceType] = useState<ResourceType>('Notes');
-  const [academicYear, setAcademicYear] = useState<AcademicYear>('2024-25');
+  const [academicYear, setAcademicYear] = useState<AcademicYear>('2025-26');
   const [tagsInput, setTagsInput] = useState('');
+
+  // Update default semester if user profile loads after mount
+  useEffect(() => {
+    const activeSem = (user?.user_metadata?.semester || userProfile?.semester) as Semester;
+    if (activeSem) {
+      setSemester(activeSem);
+    }
+  }, [user, userProfile]);
 
   // File state
   const [selectedFileObj, setSelectedFileObj] = useState<File | null>(null);

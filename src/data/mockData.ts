@@ -1,16 +1,104 @@
 import { Resource, UserProfile, ReportReason } from '@/types';
 
 export const SUBJECTS: string[] = [
-  'Data Structures & Algorithms',
-  'Operating Systems',
-  'Database Management Systems',
-  'Computer Networks',
-  'Machine Learning & AI',
-  'Engineering Mathematics III',
+  // First-Year Common & Foundation
+  'Engineering Mathematics I (Calculus & Linear Algebra)',
+  'Engineering Mathematics II (Differential Equations & Complex Variables)',
+  'Engineering Mathematics III (Transform Calculus & Statistics)',
+  'Discrete Mathematics & Graph Theory',
+  'Engineering Physics',
+  'Engineering Chemistry',
+  'Basic Electrical Engineering (BEE)',
+  'Basic Electronics Engineering',
+  'Programming for Problem Solving (C Programming)',
+  'Engineering Mechanics',
+  'Engineering Graphics & Design (CAD)',
+  'Environmental Studies & Disaster Management',
+  'Technical Communication & Soft Skills',
+
+  // Computer Science, IT, AI & Data Science (GATE CS/IT)
+  'Data Structures & Algorithms (DSA)',
+  'Design & Analysis of Algorithms (DAA)',
+  'Computer Organization & Architecture (COA)',
+  'Operating Systems (OS)',
+  'Database Management Systems (DBMS)',
+  'Theory of Computation & Automata (TOC)',
   'Compiler Design',
-  'Software Engineering & Agile',
-  'Digital Electronics & Logic Design',
+  'Computer Networks (CN)',
+  'Digital Logic & Circuit Design',
+  'Software Engineering & Agile Methodologies',
   'Object Oriented Programming in Java',
+  'Object Oriented Programming in C++',
+  'Python Programming & Applications',
+  'Web Technology & Full Stack Development',
+  'Artificial Intelligence & Expert Systems',
+  'Machine Learning & Deep Learning',
+  'Cloud Computing & DevOps',
+  'Cyber Security & Cryptography',
+  'Data Science & Big Data Analytics',
+  'Mobile Application Development (Android/Flutter)',
+  'Computer Graphics & Multimedia',
+  'Natural Language Processing (NLP)',
+  'Internet of Things (IoT)',
+  'Distributed Systems',
+
+  // Electronics & Communication (GATE EC)
+  'Analog Electronic Circuits',
+  'Electronic Devices & Circuits (EDC)',
+  'Signals & Systems',
+  'Digital Signal Processing (DSP)',
+  'Control Systems Engineering',
+  'Electromagnetic Field Theory (EMFT)',
+  'Analog & Digital Communication Systems',
+  'Microprocessors & Microcontrollers (8085/8086/ARM)',
+  'VLSI Design & Semiconductor Technology',
+  'Microwave Engineering & Antennas',
+  'Embedded Systems & RTOS',
+  'Optical Fiber Communication',
+
+  // Electrical Engineering (GATE EE)
+  'Electric Circuit Analysis & Network Theory',
+  'Electrical Machines I (DC Machines & Transformers)',
+  'Electrical Machines II (AC Machines & Synchronous)',
+  'Power Systems I (Transmission & Distribution)',
+  'Power Systems II (Switchgear & Protection)',
+  'Power Electronics & Electric Drives',
+  'Electrical & Electronic Measurements',
+  'Renewable Energy & Smart Grid Systems',
+
+  // Mechanical Engineering (GATE ME)
+  'Engineering Thermodynamics',
+  'Fluid Mechanics & Hydraulic Machines',
+  'Strength of Materials (Mechanics of Solids)',
+  'Theory of Machines & Mechanisms (TOM)',
+  'Design of Machine Elements (Machine Design)',
+  'Heat & Mass Transfer (HMT)',
+  'Manufacturing Science & Workshop Practice',
+  'Refrigeration & Air Conditioning (RAC)',
+  'Internal Combustion Engines & Automobile Engg',
+  'Industrial Engineering & Operations Research',
+  'CAD / CAM & Robotics',
+
+  // Civil Engineering (GATE CE)
+  'Structural Analysis',
+  'Design of Concrete Structures (RCC)',
+  'Design of Steel Structures',
+  'Geotechnical Engineering & Soil Mechanics',
+  'Surveying & Geomatics Engineering',
+  'Hydraulics & Water Resources Engineering',
+  'Transportation Engineering (Highways & Railways)',
+  'Environmental Engineering & Wastewater Management',
+  'Hydrology & Irrigation Engineering',
+  'Building Materials & Construction Management',
+
+  // GATE Exam Specific & Aptitude
+  'GATE General Aptitude (Quantitative & Verbal Reasoning)',
+  'GATE Engineering Mathematics',
+  'GATE CS: Core Computer Science Comprehensive',
+  'GATE EC: Core Electronics Comprehensive',
+  'GATE EE: Core Electrical Comprehensive',
+  'GATE ME: Core Mechanical Comprehensive',
+  'GATE CE: Core Civil Comprehensive',
 ];
 
 export const SEMESTERS: string[] = [
@@ -33,11 +121,57 @@ export const RESOURCE_TYPES = [
 ] as const;
 
 export const ACADEMIC_YEARS = [
+  '2026-27',
+  '2025-26',
   '2024-25',
   '2023-24',
   '2022-23',
   '2021-22',
+  '2020-21',
 ] as const;
+
+/**
+ * Normalizes any semester string format (e.g. "3", "Sem 3", "3rd Sem", "Semester 3")
+ * into canonical "Semester X" format.
+ */
+export function normalizeSemester(sem: string | undefined | null, defaultFallback: string = ''): string {
+  if (!sem || !String(sem).trim()) return defaultFallback;
+  const match = String(sem).match(/\d+/);
+  if (match) {
+    const num = parseInt(match[0], 10);
+    if (num >= 1 && num <= 8) {
+      return `Semester ${num}`;
+    }
+  }
+  return String(sem).trim();
+}
+
+/**
+ * Generates all common permutations of a semester string for flexible database matching.
+ * E.g., for "Semester 3" -> ["Semester 3", "Sem 3", "Sem-3", "3", "3rd", "3rd Sem", "3rd Semester"]
+ */
+export function getSemesterVariants(semInput: string | undefined | null): string[] {
+  if (!semInput) return [];
+  const match = String(semInput).match(/\d+/);
+  if (!match) return [String(semInput).trim()];
+  const num = match[0];
+  const full = `Semester ${num}`;
+  const shortSem = `Sem ${num}`;
+  const hyphenSem = `Sem-${num}`;
+  const ordinal = num === '1' ? '1st' : num === '2' ? '2nd' : num === '3' ? '3rd' : `${num}th`;
+  return Array.from(
+    new Set([
+      full,
+      shortSem,
+      hyphenSem,
+      num,
+      ordinal,
+      `${ordinal} Sem`,
+      `${ordinal} Semester`,
+      String(semInput).trim(),
+    ])
+  );
+}
 
 export const INITIAL_RESOURCES: Resource[] = [];
 

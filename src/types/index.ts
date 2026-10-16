@@ -2,7 +2,14 @@ export type ResourceType = 'PYQ' | 'Notes' | 'Assignment' | 'Lab Manual' | 'Stud
 
 export type Semester = 'Semester 1' | 'Semester 2' | 'Semester 3' | 'Semester 4' | 'Semester 5' | 'Semester 6' | 'Semester 7' | 'Semester 8';
 
-export type AcademicYear = '2024-25' | '2023-24' | '2022-23' | '2021-22';
+export type AcademicYear =
+  | '2026-27'
+  | '2025-26'
+  | '2024-25'
+  | '2023-24'
+  | '2022-23'
+  | '2021-22'
+  | '2020-21';
 
 export type FileFormat = 'PDF' | 'DOCX' | 'ZIP';
 

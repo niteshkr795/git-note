@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Resource } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { formatFileSize } from '@/lib/formatters';
+import { normalizeSemester } from '@/data/mockData';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { ReportModal } from '@/components/ReportModal';
@@ -104,12 +105,17 @@ function ResourceDetailsContent() {
 
           if (resourceData) {
             const uploaderData = Array.isArray(resourceData.uploader) ? resourceData.uploader[0] : resourceData.uploader;
+            const resourceSem = normalizeSemester(
+              resourceData.semester,
+              normalizeSemester((uploaderData as any)?.semester, 'Semester 1')
+            );
+
             setDbResource({
               id: resourceData.id,
               title: resourceData.title,
               description: resourceData.description || 'No description provided.',
               subject: resourceData.subject_name || (resourceData as any).subject || 'General Engineering',
-              semester: resourceData.semester as any,
+              semester: resourceSem as any,
               resourceType: resourceData.resource_type as any,
               academicYear: resourceData.academic_year as any,
               fileFormat: (resourceData.file_format || 'PDF') as any,
@@ -128,7 +134,7 @@ function ResourceDetailsContent() {
                 avatar: (uploaderData as any)?.avatar_url || '',
                 college: (uploaderData as any)?.college || 'SRMCEM Lucknow',
                 branch: (uploaderData as any)?.branch || 'Computer Science & Engineering',
-                semester: (uploaderData as any)?.semester || resourceData.semester || 'Semester 4',
+                semester: normalizeSemester((uploaderData as any)?.semester, resourceSem),
                 verified: Boolean((uploaderData as any)?.is_verified ?? resourceData.is_verified),
               },
               isVerified: Boolean(resourceData.is_verified),
