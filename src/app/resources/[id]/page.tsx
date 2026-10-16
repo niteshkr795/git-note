@@ -7,6 +7,7 @@ import { useResources } from '@/context/ResourceContext';
 import { useAuth } from '@/context/AuthContext';
 import { Resource } from '@/types';
 import { supabase } from '@/lib/supabase';
+import { formatFileSize } from '@/lib/formatters';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { ReportModal } from '@/components/ReportModal';
@@ -64,6 +65,8 @@ function ResourceDetailsContent() {
           academic_year,
           file_format,
           file_size,
+          file_size_bytes,
+          storage_path,
           page_count,
           download_count,
           view_count,
@@ -107,7 +110,9 @@ function ResourceDetailsContent() {
               resourceType: resourceData.resource_type as any,
               academicYear: resourceData.academic_year as any,
               fileFormat: (resourceData.file_format || 'PDF') as any,
-              fileSize: resourceData.file_size || '1.0 MB',
+              fileSize: formatFileSize(resourceData.file_size_bytes, resourceData.file_size),
+              fileSizeBytes: resourceData.file_size_bytes || undefined,
+              storagePath: resourceData.storage_path || undefined,
               pageCount: resourceData.page_count || 12,
               downloadCount: resourceData.download_count ?? 0,
               viewCount: resourceData.view_count ?? 0,

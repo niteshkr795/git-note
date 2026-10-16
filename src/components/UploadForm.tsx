@@ -8,6 +8,7 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import { SUBJECTS, SEMESTERS, RESOURCE_TYPES, ACADEMIC_YEARS } from '@/data/mockData';
 import { Semester, ResourceType, AcademicYear, FileFormat } from '@/types';
+import { formatFileSize } from '@/lib/formatters';
 import {
   UploadCloud,
   FileText,
@@ -76,11 +77,11 @@ export const UploadForm: React.FC = () => {
       return;
     }
 
-    const sizeInMB = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+    const formattedSize = formatFileSize(file.size);
     setSelectedFileObj(file);
     setSelectedFileMeta({
       name,
-      size: sizeInMB,
+      size: formattedSize,
       format,
     });
     setErrors((prev) => {
@@ -183,15 +184,23 @@ export const UploadForm: React.FC = () => {
       const cleanFileName = selectedFileObj.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const storagePath = `${currentUserId}/${Date.now()}_${cleanFileName}`;
 
-      let activeBucket = 'academic-resources';
+      let activeBucket = 'study-resources';
       let storageUploadData: any = null;
       let storageError: any = null;
 
+      const mimeMap: Record<string, string> = {
+        PDF: 'application/pdf',
+        DOCX: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ZIP: 'application/zip',
+      };
+      const contentType = selectedFileObj.type || mimeMap[selectedFileMeta.format] || 'application/pdf';
+
       const primaryUpload = await supabase.storage
-        .from('academic-resources')
+        .from('study-resources')
         .upload(storagePath, selectedFileObj, {
           cacheControl: '3600',
           upsert: false,
+          contentType,
         });
 
       if (
@@ -200,13 +209,14 @@ export const UploadForm: React.FC = () => {
           (primaryUpload.error as any).statusCode === '404' ||
           (primaryUpload.error as any).statusCode === 404)
       ) {
-        // Fallback to 'study-resources' bucket
-        activeBucket = 'study-resources';
+        // Fallback to 'academic-resources' bucket
+        activeBucket = 'academic-resources';
         const fallbackUpload = await supabase.storage
-          .from('study-resources')
+          .from('academic-resources')
           .upload(storagePath, selectedFileObj, {
             cacheControl: '3600',
             upsert: false,
+            contentType,
           });
         storageUploadData = fallbackUpload.data;
         storageError = fallbackUpload.error;

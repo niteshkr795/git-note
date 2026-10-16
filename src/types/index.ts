@@ -27,6 +27,7 @@ export interface Resource {
   academicYear: AcademicYear;
   fileFormat: FileFormat;
   fileSize: string;
+  fileSizeBytes?: number;
   pageCount?: number;
   downloadCount: number;
   viewCount: number;

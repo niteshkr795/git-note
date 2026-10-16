@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Resource } from '@/types';
+import { formatFileSize } from '@/lib/formatters';
 import { SUBJECTS, SEMESTERS, ACADEMIC_YEARS } from '@/data/mockData';
 import { ResourceCard } from '@/components/ResourceCard';
 import { QuickPreviewModal } from '@/components/QuickPreviewModal';
@@ -70,7 +71,9 @@ function mapDbRowToResource(dbRes: any): Resource {
     resourceType: (dbRes.resource_type === 'PYQ' ? 'PYQ' : dbRes.resource_type) as any,
     academicYear: dbRes.academic_year as any,
     fileFormat: (dbRes.file_format || 'PDF') as any,
-    fileSize: dbRes.file_size || '1.0 MB',
+    fileSize: formatFileSize(dbRes.file_size_bytes, dbRes.file_size),
+    fileSizeBytes: dbRes.file_size_bytes || undefined,
+    storagePath: dbRes.storage_path || undefined,
     pageCount: dbRes.page_count || 12,
     downloadCount: dbRes.download_count ?? 0,
     viewCount: dbRes.view_count ?? 0,
@@ -238,6 +241,8 @@ function SearchPageContent() {
             academic_year,
             file_format,
             file_size,
+            file_size_bytes,
+            storage_path,
             page_count,
             download_count,
             view_count,
@@ -266,6 +271,8 @@ function SearchPageContent() {
             academic_year,
             file_format,
             file_size,
+            file_size_bytes,
+            storage_path,
             page_count,
             download_count,
             view_count,

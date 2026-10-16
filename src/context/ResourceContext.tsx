@@ -5,6 +5,7 @@ import { Resource, UserProfile } from '@/types';
 import { INITIAL_RESOURCES, MOCK_USER_PROFILE } from '@/data/mockData';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
+import { formatFileSize } from '@/lib/formatters';
 
 interface ToastMessage {
   id: string;
@@ -63,7 +64,8 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       resourceType: (item.resource_type || 'Notes') as any,
       academicYear: (item.academic_year || '2024-25') as any,
       fileFormat: (item.file_format || 'PDF') as any,
-      fileSize: item.file_size || '1.0 MB',
+      fileSize: formatFileSize(item.file_size_bytes, item.file_size),
+      fileSizeBytes: item.file_size_bytes || undefined,
       storagePath: item.storage_path || undefined,
       pageCount: item.page_count || 12,
       downloadCount: item.download_count ?? 0,
@@ -124,6 +126,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           academic_year,
           file_format,
           file_size,
+          file_size_bytes,
           storage_path,
           page_count,
           download_count,
@@ -510,8 +513,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           resource_id_param: resource.id,
           user_id_param: user?.id || null,
         });
-      } catch (err) {
-        // Fallback update if RPC is missing
+      } catch {
         try {
           await supabase
             .from('resources')
@@ -523,67 +525,100 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     }
 
-    // Try downloading actual file from Supabase storage if storagePath exists
-    if (resource.storagePath && isSupabaseConfigured) {
-      try {
-        let dl = await supabase.storage
-          .from('academic-resources')
-          .download(resource.storagePath);
+    let storagePath = resource.storagePath;
+    let fileFormat = resource.fileFormat || 'PDF';
 
+    // If storagePath is not directly present, query Supabase
+    if (!storagePath && isSupabaseConfigured && resource.id && !resource.id.startsWith('res-')) {
+      try {
+        const { data: dbItem } = await supabase
+          .from('resources')
+          .select('storage_path, file_format')
+          .eq('id', resource.id)
+          .maybeSingle();
+        if (dbItem?.storage_path) {
+          storagePath = dbItem.storage_path;
+        }
+        if (dbItem?.file_format) {
+          fileFormat = dbItem.file_format as any;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    // Attempt real file download from Supabase Storage
+    if (storagePath && isSupabaseConfigured) {
+      const ext = (fileFormat || 'PDF').toLowerCase();
+      const filename = `${resource.title.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 48)}.${ext}`;
+
+      try {
+        // 1. Direct blob download (study-resources then academic-resources)
+        let dl = await supabase.storage.from('study-resources').download(storagePath);
         if (dl.error) {
-          dl = await supabase.storage
-            .from('study-resources')
-            .download(resource.storagePath);
+          dl = await supabase.storage.from('academic-resources').download(storagePath);
         }
 
         if (dl.data && !dl.error) {
           const url = URL.createObjectURL(dl.data);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `${resource.title.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 32)}.${resource.fileFormat.toLowerCase()}`;
+          a.download = filename;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
           return;
         }
+
+        // 2. Fallback: Signed URL
+        let signed = await supabase.storage.from('study-resources').createSignedUrl(storagePath, 300);
+        if (signed.error) {
+          signed = await supabase.storage.from('academic-resources').createSignedUrl(storagePath, 300);
+        }
+
+        if (signed.data?.signedUrl) {
+          const resp = await fetch(signed.data.signedUrl);
+          if (resp.ok) {
+            const blob = await resp.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            return;
+          }
+        }
       } catch (err) {
-        console.warn('[GitNote] Storage download fallback:', err);
+        console.warn('[GitNote] Storage download error:', err);
       }
+
+      // If storage download failed for a real stored document
+      if (!user) {
+        addToast(
+          'warning',
+          'Sign in Required',
+          'Please sign in to your student account to download verified files.'
+        );
+      } else {
+        addToast(
+          'error',
+          'File Unavailable',
+          'This file could not be retrieved from storage. It may need to be re-uploaded.'
+        );
+      }
+      return;
     }
 
-    // Fallback simulated document text file download
-    const mockContent = `GitNote Academic Resource
-====================================
-Title: ${resource.title}
-Subject: ${resource.subject} (${resource.semester})
-Type: ${resource.resourceType}
-Academic Year: ${resource.academicYear}
-Uploaded By: ${resource.uploader.name} (${resource.uploader.college})
-Verified Rating: ${resource.rating} / 5.0
-
-Description:
-${resource.description}
-
-Key Topics:
-${resource.previewContent?.keyTopics.map((t) => `- ${t}`).join('\n') || 'N/A'}
-
-Preview Sample:
-${resource.previewContent?.sampleText || 'No sample text available.'}
-
-------------------------------------
-Downloaded via GitNote - Learn. Share. Discover.
-`;
-
-    const blob = new Blob([mockContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${resource.title.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 32)}.${resource.fileFormat.toLowerCase() === 'pdf' ? 'txt' : 'txt'}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // For demo/sample catalog items without Supabase storagePath
+    addToast(
+      'info',
+      'Demo Resource',
+      'This is a sample catalog item. Upload a new document to download real PDF files.'
+    );
   };
 
   return (

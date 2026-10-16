@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { formatFileSize } from '@/lib/formatters';
 import {
   FileText,
   GraduationCap,
@@ -86,6 +87,7 @@ export default function HomePage() {
             academic_year,
             file_format,
             file_size,
+            file_size_bytes,
             download_count,
             created_at,
             uploader:profiles!uploader_id(
@@ -112,6 +114,7 @@ export default function HomePage() {
         if (resData) {
           const mapped = resData.map((item: any) => ({
             ...item,
+            file_size: formatFileSize(item.file_size_bytes, item.file_size),
             subject_name: item.subject_name || item.subject || 'General',
             uploader: Array.isArray(item.uploader) ? item.uploader[0] : item.uploader,
           }));
