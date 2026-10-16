@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { useResources } from '@/context/ResourceContext';
 import { useAuth } from '@/context/AuthContext';
 import { DeleteResourceModal } from '@/components/DeleteResourceModal';
+import { QuickPreviewModal } from '@/components/QuickPreviewModal';
 import {
   Bookmark,
   Download,
@@ -34,6 +35,7 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
   const { user } = useAuth();
   const { toggleBookmark, isBookmarked, mockDownload, userProfile } = useResources();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isInternalPreviewOpen, setIsInternalPreviewOpen] = useState(false);
   const bookmarked = isBookmarked(resource.id);
 
   // Determine if the current active student owns this resource
@@ -153,27 +155,38 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
           </div>
         </div>
 
-        {/* Action Buttons: Quick Preview & Direct Download */}
-        <div className="flex items-center gap-1 shrink-0">
-          {onQuickPreview && (
-            <button
-              type="button"
-              onClick={() => onQuickPreview(resource)}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-[#4f46e5] hover:bg-[#eef2ff] transition-colors cursor-pointer"
-              title="Quick Preview Document"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-          )}
+        {/* Action Buttons: Preview & Direct Download */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (onQuickPreview) {
+                onQuickPreview(resource);
+              } else {
+                setIsInternalPreviewOpen(true);
+              }
+            }}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-[#eef2ff] text-slate-700 hover:text-[#4f46e5] font-semibold text-xs border border-slate-200 hover:border-[#c7d2fe] transition-colors cursor-pointer"
+            title="Preview Document"
+          >
+            <Eye className="w-3.5 h-3.5 text-[#4f46e5]" />
+            <span className="hidden sm:inline">Preview</span>
+          </button>
 
           <button
             type="button"
-            onClick={() => mockDownload(resource)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              mockDownload(resource);
+            }}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#f5f3ff] hover:bg-[#ede9fe] text-[#7c3aed] font-semibold text-xs border border-[#ddd6fe] transition-colors cursor-pointer"
-            title="Download PDF"
+            title="Download Document"
           >
             <Download className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">PDF</span>
+            <span className="hidden sm:inline">Download</span>
           </button>
 
           {isOwner && (
@@ -193,6 +206,15 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
           )}
         </div>
       </div>
+
+      {/* Internal Quick Preview Modal Fallback */}
+      {!onQuickPreview && (
+        <QuickPreviewModal
+          resource={resource}
+          isOpen={isInternalPreviewOpen}
+          onClose={() => setIsInternalPreviewOpen(false)}
+        />
+      )}
 
       {/* Delete Confirmation Modal */}
       <DeleteResourceModal

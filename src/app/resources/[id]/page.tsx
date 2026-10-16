@@ -12,6 +12,9 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { ReportModal } from '@/components/ReportModal';
 import { DeleteResourceModal } from '@/components/DeleteResourceModal';
+import { QuickPreviewModal } from '@/components/QuickPreviewModal';
+import { PdfViewer } from '@/components/PdfViewer';
+import { getResourceFileUrl } from '@/lib/pdfHelper';
 import {
   FileText,
   Download,
@@ -166,6 +169,33 @@ function ResourceDetailsContent() {
     );
   }
 
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!resource) return;
+
+    let isSubscribed = true;
+    let cleanupFn: (() => void) | undefined;
+
+    async function loadFileUrl() {
+      if (!resource) return;
+      const res = await getResourceFileUrl(resource);
+      if (!isSubscribed) return;
+      if (res.url) {
+        setFileUrl(res.url);
+        cleanupFn = res.cleanUp;
+      }
+    }
+
+    loadFileUrl();
+
+    return () => {
+      isSubscribed = false;
+      if (cleanupFn) cleanupFn();
+    };
+  }, [resource?.id, resource?.storagePath]);
+
   const bookmarked = isBookmarked(resource.id);
   const totalPages = resource.pageCount || 16;
 
@@ -266,18 +296,28 @@ function ResourceDetailsContent() {
           </div>
 
           {/* Action Buttons Box */}
-          <div className="flex flex-wrap sm:flex-col gap-2.5 shrink-0 min-w-[220px]">
+          <div className="flex flex-col gap-2.5 shrink-0 min-w-[220px]">
             <Button
               variant="primary"
               size="lg"
-              onClick={() => mockDownload(resource)}
-              leftIcon={<Download className="w-5 h-5" />}
-              className="w-full shadow-sm"
+              onClick={() => setIsPreviewModalOpen(true)}
+              leftIcon={<Eye className="w-5 h-5" />}
+              className="w-full shadow-sm bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 font-semibold"
             >
-              Download PDF ({resource.fileSize})
+              Preview Document
             </Button>
 
-            <div className="grid grid-cols-2 gap-2 w-full">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => mockDownload(resource)}
+              leftIcon={<Download className="w-5 h-5 text-indigo-600" />}
+              className="w-full shadow-xs text-indigo-700 border-indigo-200 hover:bg-indigo-50 font-semibold"
+            >
+              Download ({resource.fileSize})
+            </Button>
+
+            <div className="grid grid-cols-2 gap-2 w-full mt-1">
               <Button
                 variant={bookmarked ? 'emerald' : 'outline'}
                 size="md"
@@ -327,147 +367,45 @@ function ResourceDetailsContent() {
 
       {/* Main 12-Column Grid: Document Preview & Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* Left Column (8-col approx): Interactive PDF Viewer Canvas */}
+        {/* Left Column (8-col approx): Real Interactive PDF Viewer & Summary */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-[#0f172a] rounded-2xl overflow-hidden border border-white/10 shadow-xl flex flex-col">
-            {/* Viewer Control Bar */}
-            <div className="bg-[#0b0f19] px-5 py-3 border-b border-white/10 flex items-center justify-between text-xs text-slate-300">
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#4f46e5]" />
-                <span className="font-mono text-slate-300 font-semibold truncate max-w-[220px]">
-                  {resource.title.slice(0, 36)}...pdf
-                </span>
-              </div>
+          <PdfViewer
+            url={fileUrl}
+            title={resource.title}
+            fileFormat={resource.fileFormat}
+            fileSize={resource.fileSize}
+            onDownload={() => mockDownload(resource)}
+          />
 
-              {/* Page Selector */}
-              <div className="flex items-center gap-3">
-                <button
-                  disabled={currentPage <= 1}
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="p-1 rounded-lg hover:bg-white/10 disabled:opacity-40 transition-colors cursor-pointer text-slate-300"
-                  title="Previous Page"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span className="font-mono text-xs text-slate-300">
-                  Page <strong className="text-white">{currentPage}</strong> of {totalPages}
-                </span>
-                <button
-                  disabled={currentPage >= totalPages}
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="p-1 rounded-lg hover:bg-white/10 disabled:opacity-40 transition-colors cursor-pointer text-slate-300"
-                  title="Next Page"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
+          {/* Academic Synopsis & Exam Topics Card */}
+          <div className="bg-white rounded-2xl border border-[#e2e8f0] p-6 sm:p-8 space-y-5 shadow-xs">
+            <h3 className="text-base font-bold text-[#0f172a] flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#4f46e5]" />
+              <span>Syllabus Topics & Document Synopsis</span>
+            </h3>
 
-              {/* Zoom Controls */}
-              <div className="hidden sm:flex items-center gap-2">
-                <button
-                  onClick={() => setZoomLevel((z) => Math.max(70, z - 10))}
-                  className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                  title="Zoom Out"
-                >
-                  <ZoomOut className="w-4 h-4" />
-                </button>
-                <span className="font-mono text-[11px] text-slate-400 w-10 text-center">
-                  {zoomLevel}%
-                </span>
-                <button
-                  onClick={() => setZoomLevel((z) => Math.min(150, z + 10))}
-                  className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                  title="Zoom In"
-                >
-                  <ZoomIn className="w-4 h-4" />
-                </button>
-              </div>
+            <div className="bg-[#faf8ff] p-4 rounded-xl border border-[#e0e7ff] text-xs leading-relaxed text-[#475569]">
+              <strong className="block text-[#0f172a] mb-1 font-semibold">Description & Scope:</strong>
+              <p>{resource.description || 'Verified academic syllabus material for semester studies.'}</p>
             </div>
 
-            {/* Document Render Area */}
-            <div className="p-4 sm:p-10 bg-[#1e293b]/70 overflow-y-auto max-h-[620px] flex justify-center">
-              <div
-                style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top center' }}
-                className="bg-white rounded-xl shadow-xl p-8 sm:p-12 max-w-2xl w-full text-slate-800 border border-[#e2e8f0] min-h-[560px] transition-transform duration-150 flex flex-col justify-between"
-              >
-                <div>
-                  {/* Academic Document Header */}
-                  <div className="border-b-2 border-[#0f172a] pb-4 mb-6 flex justify-between items-start">
-                    <div>
-                      <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#4f46e5] block">
-                        GitNote Academic Repository • Verified Syllabus
-                      </span>
-                      <h2 className="font-bold text-[#0f172a] text-base">{resource.subject}</h2>
-                      <span className="text-xs text-slate-500 font-medium">
-                        {resource.semester} • Academic Session {resource.academicYear}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[10px] font-bold bg-[#eef2ff] text-[#4338ca] px-2 py-0.5 rounded-full border border-[#e0e7ff] font-mono">
-                        DOC: {resource.id.toUpperCase()}
-                      </span>
-                      <span className="block text-[10px] text-slate-400 mt-1">Page {currentPage}</span>
-                    </div>
-                  </div>
-
-                  {/* Document Body Sample */}
-                  <div className="space-y-4 text-xs font-serif leading-relaxed text-slate-700">
-                    <div className="bg-[#eef2ff]/70 p-3.5 rounded-xl border border-[#e0e7ff] text-xs font-sans">
-                      <strong className="text-[#312e81] flex items-center gap-1.5 font-semibold">
-                        <Sparkles className="w-4 h-4 text-[#4f46e5]" />
-                        Executive Summary & Exam Weightage:
-                      </strong>
-                      <p className="text-[#475569] mt-1 leading-relaxed">
-                        {resource.previewContent?.summary}
-                      </p>
-                    </div>
-
-                    <div className="font-sans pt-1">
-                      <span className="font-bold text-[#0f172a] text-xs block mb-1.5">
-                        Key Exam Questions Covered in this Sheet:
-                      </span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {resource.previewContent?.keyTopics.map((item, idx) => (
-                          <span
-                            key={idx}
-                            className="text-xs bg-slate-100 text-slate-700 font-medium px-2.5 py-1 rounded-full border border-slate-200"
-                          >
-                            • {item}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="pt-2 font-mono">
-                      <span className="text-[10px] uppercase tracking-wider text-slate-400 block mb-1">
-                        Transcript Preview (Page {currentPage})
-                      </span>
-                      <pre className="text-xs bg-[#f8fafc] p-4 rounded-xl border border-[#e2e8f0] whitespace-pre-wrap text-[#0f172a] leading-relaxed font-mono">
-                        {resource.previewContent?.sampleText}
-                      </pre>
-                    </div>
-
-                    {resource.previewContent?.diagramType && (
-                      <div className="p-4 bg-[#faf8ff] border border-dashed border-[#cbd5e1] rounded-xl text-center text-slate-600 font-sans text-xs">
-                        <Layers className="w-6 h-6 mx-auto mb-1 text-[#4f46e5]" />
-                        <span className="font-bold text-[#0f172a]">
-                          [Technical Figure]: {resource.previewContent.diagramType}
-                        </span>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
-                          High-resolution schematic available in complete downloaded PDF
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Footer Stamp on Page */}
-                <div className="border-t border-[#f1f5f9] pt-4 mt-8 flex justify-between items-center text-[10px] text-slate-400 font-mono">
-                  <span>GitNote Academic Repository</span>
-                  <span>Uploader: {resource.uploader.name}</span>
+            {resource.previewContent?.keyTopics && resource.previewContent.keyTopics.length > 0 && (
+              <div>
+                <span className="font-bold text-[#0f172a] text-xs block mb-2">
+                  Key Examination Units Covered:
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {resource.previewContent.keyTopics.map((item, idx) => (
+                    <span
+                      key={idx}
+                      className="text-xs bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-full border border-slate-200"
+                    >
+                      • {item}
+                    </span>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Description & Detailed Information Card */}
@@ -587,6 +525,13 @@ function ResourceDetailsContent() {
         onDeleted={() => {
           router.push('/profile?tab=uploads');
         }}
+      />
+
+      {/* Fullscreen Document Preview Modal */}
+      <QuickPreviewModal
+        resource={resource}
+        isOpen={isPreviewModalOpen}
+        onClose={() => setIsPreviewModalOpen(false)}
       />
     </div>
   );
