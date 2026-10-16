@@ -90,10 +90,12 @@ export default function SignupPage() {
 
       if (error) {
         let msg = error.message;
-        if (msg.toLowerCase().includes('already registered')) {
+        if (msg === 'Failed to fetch' || msg.toLowerCase().includes('failed to fetch')) {
+          msg = 'Unable to reach Supabase (Failed to fetch). Common causes: 1) An ad-blocker (like Brave Shields, uBlock Origin) is blocking requests to supabase.co, 2) The local dev server needs a restart to load .env.local, or 3) Supabase project credentials are not configured in your hosting environment.';
+        } else if (msg.toLowerCase().includes('already registered')) {
           msg = 'An account with this email already exists. Please sign in instead.';
         } else if (msg.toLowerCase().includes('rate limit')) {
-          msg = 'Email rate limit exceeded: Supabase allows only 3-4 verification emails per hour on default SMTP. In Supabase Dashboard → Authentication → Providers → Email, turn OFF "Confirm email" to sign up instantly without email limits.';
+          msg = 'Email rate limit exceeded (Supabase default limit is 3-4 emails/hr). In Supabase Dashboard → Authentication → Providers → Email, turn OFF "Confirm email" to register instantly without email verification limits.';
         }
         setErrors({ form: msg });
         addToast('error', 'Registration Failed', msg);

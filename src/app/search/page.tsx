@@ -65,7 +65,7 @@ function mapDbRowToResource(dbRes: any): Resource {
     id: dbRes.id,
     title: dbRes.title,
     description: dbRes.description || 'No description provided.',
-    subject: dbRes.subject_name || 'General',
+    subject: dbRes.subject_name || dbRes.subject || 'General',
     semester: dbRes.semester as any,
     resourceType: (dbRes.resource_type === 'PYQ' ? 'PYQ' : dbRes.resource_type) as any,
     academicYear: dbRes.academic_year as any,
@@ -78,7 +78,7 @@ function mapDbRowToResource(dbRes: any): Resource {
     createdAt: dbRes.created_at ? new Date(dbRes.created_at).toISOString().split('T')[0] : '',
     tags: Array.isArray(dbRes.tags) ? dbRes.tags : [],
     uploader: {
-      id: uploaderData?.id || dbRes.uploader_id || 'contributor',
+      id: uploaderData?.id || dbRes.uploader_id || dbRes.owner_id || 'contributor',
       name: uploaderData?.full_name || 'Student Contributor',
       avatar: uploaderData?.avatar_url || '',
       college: uploaderData?.college || 'SRMCEM Lucknow',
@@ -90,7 +90,7 @@ function mapDbRowToResource(dbRes: any): Resource {
     previewContent: {
       summary: (dbRes.description || dbRes.title).slice(0, 160) + '...',
       keyTopics: Array.isArray(dbRes.tags) && dbRes.tags.length > 0 ? dbRes.tags : ['Unit Overview', 'Solved Problems', 'Revision Notes'],
-      sampleText: `Title: ${dbRes.title}\nSubject: ${dbRes.subject_name}\nAcademic Year: ${dbRes.academic_year}\n\nDocument cataloged in GitNote academic repository.\n\nDescription:\n${dbRes.description || 'Verified academic syllabus material.'}`,
+      sampleText: `Title: ${dbRes.title}\nSubject: ${dbRes.subject_name || dbRes.subject || 'General'}\nAcademic Year: ${dbRes.academic_year}\n\nDocument cataloged in GitNote academic repository.\n\nDescription:\n${dbRes.description || 'Verified academic syllabus material.'}`,
     },
   };
 }
@@ -338,10 +338,22 @@ function SearchPageContent() {
         // Pagination range
         query = query.range(from, to);
 
-        const { data, count, error } = await query;
+        let { data, count, error } = await query;
 
         if (error) {
-          throw error;
+          // Fallback to simple resources select if profile relation not available
+          const fallbackRes = await supabase
+            .from('resources')
+            .select('*', { count: 'exact' })
+            .order('created_at', { ascending: false })
+            .range(from, to);
+          if (!fallbackRes.error) {
+            data = fallbackRes.data;
+            count = fallbackRes.count;
+            error = null;
+          } else {
+            throw error;
+          }
         }
 
         const mapped = (data || []).map(mapDbRowToResource);

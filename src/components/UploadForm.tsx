@@ -137,26 +137,38 @@ export const UploadForm: React.FC = () => {
     setUploadProgress(15);
 
     try {
-      // Step 1: Ensure user profile exists in public.profiles table
+      // Step 1: Ensure current user is authenticated with Supabase session
+      const { data: authData } = await supabase.auth.getUser();
+      const currentUserId = authData?.user?.id || user?.id;
+
+      if (!currentUserId) {
+        setErrors({
+          upload: 'Your authentication session has expired. Please sign in again.',
+        });
+        setIsUploading(false);
+        return;
+      }
+
       setUploadProgress(25);
       const { data: profileRow } = await supabase
         .from('profiles')
         .select('id')
-        .eq('id', user.id)
+        .eq('id', currentUserId)
         .maybeSingle();
 
       if (!profileRow) {
         const { error: profileError } = await supabase.from('profiles').upsert(
           {
-            id: user.id,
-            email: user.email,
+            id: currentUserId,
+            email: authData?.user?.email || user.email,
             full_name:
+              authData?.user?.user_metadata?.full_name ||
               user.user_metadata?.full_name ||
               user.email?.split('@')[0] ||
               'Student Contributor',
-            college: user.user_metadata?.college || 'SRMCEM Lucknow',
-            branch: user.user_metadata?.branch || 'Computer Science & Engineering',
-            semester: user.user_metadata?.semester || semester,
+            college: authData?.user?.user_metadata?.college || user.user_metadata?.college || 'SRMCEM Lucknow',
+            branch: authData?.user?.user_metadata?.branch || user.user_metadata?.branch || 'Computer Science & Engineering',
+            semester: authData?.user?.user_metadata?.semester || user.user_metadata?.semester || semester,
           },
           { onConflict: 'id' }
         );
@@ -166,41 +178,55 @@ export const UploadForm: React.FC = () => {
         }
       }
 
-      // Step 2: Upload file to Supabase Storage bucket 'study-resources'
+      // Step 2: Upload file to Supabase Storage bucket ('academic-resources' or 'study-resources')
       setUploadProgress(45);
       const cleanFileName = selectedFileObj.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const storagePath = `${user.id}/${Date.now()}_${cleanFileName}`;
+      const storagePath = `${currentUserId}/${Date.now()}_${cleanFileName}`;
 
-      const { data: storageUploadData, error: storageError } = await supabase.storage
-        .from('study-resources')
+      let activeBucket = 'academic-resources';
+      let storageUploadData: any = null;
+      let storageError: any = null;
+
+      const primaryUpload = await supabase.storage
+        .from('academic-resources')
         .upload(storagePath, selectedFileObj, {
           cacheControl: '3600',
           upsert: false,
         });
 
+      if (
+        primaryUpload.error &&
+        (primaryUpload.error.message?.toLowerCase().includes('bucket not found') ||
+          (primaryUpload.error as any).statusCode === '404' ||
+          (primaryUpload.error as any).statusCode === 404)
+      ) {
+        // Fallback to 'study-resources' bucket
+        activeBucket = 'study-resources';
+        const fallbackUpload = await supabase.storage
+          .from('study-resources')
+          .upload(storagePath, selectedFileObj, {
+            cacheControl: '3600',
+            upsert: false,
+          });
+        storageUploadData = fallbackUpload.data;
+        storageError = fallbackUpload.error;
+      } else {
+        storageUploadData = primaryUpload.data;
+        storageError = primaryUpload.error;
+      }
+
       if (storageError) {
         console.error('[GitNote] Storage upload error:', storageError);
 
-        if (
-          storageError.message?.toLowerCase().includes('bucket not found') ||
-          (storageError as any).statusCode === '404'
-        ) {
-          setErrors({
-            upload:
-              'Storage bucket "study-resources" has not been created yet in your Supabase project. Please run the SQL migration (supabase/migrations/20261014000001_phase3_storage_policies.sql) in your Supabase SQL Editor.',
-          });
-          setIsUploading(false);
-          return;
-        }
-
         setErrors({
-          upload: `File upload failed: ${storageError.message}`,
+          upload: `File upload failed: ${storageError.message}. Please check your storage bucket permissions.`,
         });
         setIsUploading(false);
         return;
       }
 
       setUploadProgress(75);
+      const uploadedStoragePath = storageUploadData?.path || storagePath;
 
       // Step 3: Insert metadata row in PostgreSQL 'resources' table
       const parsedTags = tagsInput
@@ -210,29 +236,44 @@ export const UploadForm: React.FC = () => {
             .filter(Boolean)
         : [resourceType, semester.replace('Semester ', 'Sem ')];
 
+      // Insert resource metadata and storage path into public.resources
+      const resourceInsertPayload: Record<string, any> = {
+        title: title.trim(),
+        description: description.trim(),
+        resource_type: resourceType,
+        subject: subject,
+        subject_name: subject,
+        semester: semester,
+        academic_year: academicYear,
+        file_format: selectedFileMeta.format,
+        file_size: selectedFileMeta.size,
+        file_size_bytes: selectedFileObj.size,
+        storage_path: uploadedStoragePath,
+        page_count: Math.floor(Math.random() * 20) + 10,
+        tags: parsedTags,
+        uploader_id: currentUserId,
+        owner_id: currentUserId,
+        status: 'published',
+        is_verified: false,
+      };
+
       const { data: insertedResource, error: dbError } = await supabase
         .from('resources')
-        .insert({
-          title: title.trim(),
-          description: description.trim(),
-          resource_type: resourceType,
-          subject_name: subject,
-          semester: semester,
-          academic_year: academicYear,
-          file_format: selectedFileMeta.format,
-          file_size: selectedFileMeta.size,
-          file_size_bytes: selectedFileObj.size,
-          storage_path: storageUploadData?.path || storagePath,
-          page_count: Math.floor(Math.random() * 20) + 10,
-          tags: parsedTags,
-          uploader_id: user.id,
-          is_verified: false,
-        })
+        .insert(resourceInsertPayload)
         .select('id, title')
         .single();
 
       if (dbError) {
         console.error('[GitNote] Database insert error:', dbError);
+        // Clean up orphaned uploaded file from Supabase storage
+        try {
+          await supabase.storage
+            .from(activeBucket)
+            .remove([uploadedStoragePath]);
+        } catch (cleanupErr) {
+          console.warn('[GitNote] Could not clean up orphaned file:', cleanupErr);
+        }
+
         setErrors({
           upload: `Database error saving resource: ${dbError.message}`,
         });

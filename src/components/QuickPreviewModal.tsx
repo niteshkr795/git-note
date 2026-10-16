@@ -208,10 +208,10 @@ export const QuickPreviewModal: React.FC<QuickPreviewModalProps> = ({
               </div>
 
               <div className="p-3 bg-[#f8fafc] rounded-lg border border-[#e2e8f0] font-mono text-[11px] text-slate-700">
-                // Sample Academic Transcription Preview<br />
+                {'// Sample Academic Transcription Preview'}<br />
                 void executeOptimization(Node* root) &#123;<br />
                 &nbsp;&nbsp;if (!root) return;<br />
-                &nbsp;&nbsp;// Solved step according to university syllabus standard<br />
+                &nbsp;&nbsp;{'// Solved step according to university syllabus standard'}<br />
                 &#125;
               </div>
             </div>

@@ -97,9 +97,22 @@ export default function HomePage() {
           .order('created_at', { ascending: false })
           .limit(6);
 
-        if (!error && data) {
-          const mapped = data.map((item: any) => ({
+        let resData = data;
+        if (error) {
+          const fallback = await supabase
+            .from('resources')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(6);
+          if (!fallback.error && fallback.data) {
+            resData = fallback.data as any;
+          }
+        }
+
+        if (resData) {
+          const mapped = resData.map((item: any) => ({
             ...item,
+            subject_name: item.subject_name || item.subject || 'General',
             uploader: Array.isArray(item.uploader) ? item.uploader[0] : item.uploader,
           }));
           setRecentResources(mapped);

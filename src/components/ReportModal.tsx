@@ -27,7 +27,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedReason) {
       setError('Please choose a reason for reporting this document.');
@@ -37,12 +37,14 @@ export const ReportModal: React.FC<ReportModalProps> = ({
     setError('');
     setIsSubmitting(true);
 
-    // Mock API processing
-    setTimeout(() => {
-      reportResource(resourceId, selectedReason, details);
-      setIsSubmitting(false);
+    try {
+      await reportResource(resourceId, selectedReason, details);
       setIsSubmitted(true);
-    }, 600);
+    } catch {
+      setError('Failed to submit report. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReset = () => {

@@ -23,7 +23,7 @@ interface ResourceContextType {
   isBookmarked: (resourceId: string) => boolean;
   addResource: (newResource: Omit<Resource, 'id' | 'createdAt' | 'downloadCount' | 'viewCount' | 'rating' | 'uploader'>) => Resource;
   deleteResource: (resourceId: string) => Promise<{ success: boolean; error?: string }>;
-  reportResource: (resourceId: string, reason: string, details: string) => void;
+  reportResource: (resourceId: string, reason: string, details: string) => Promise<void>;
   toasts: ToastMessage[];
   addToast: (type: ToastMessage['type'], title: string, message: string) => void;
   removeToast: (id: string) => void;
@@ -40,17 +40,17 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   // Toast notification management
-  const addToast = (type: ToastMessage['type'], title: string, message: string) => {
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  const addToast = useCallback((type: ToastMessage['type'], title: string, message: string) => {
     const id = `toast-${Date.now()}-${Math.random()}`;
     setToasts((prev) => [...prev, { id, type, title, message }]);
     setTimeout(() => {
       removeToast(id);
     }, 4500);
-  };
-
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
+  }, [removeToast]);
 
   const mapDbResourceToModel = (item: any, bookmarkedSet?: Set<string>): Resource => {
     const uploaderData = Array.isArray(item.uploader) ? item.uploader[0] : item.uploader;
@@ -58,7 +58,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       id: item.id,
       title: item.title,
       description: item.description || '',
-      subject: item.subject_name || 'General Engineering',
+      subject: item.subject_name || item.subject || 'General Engineering',
       semester: (item.semester || 'Semester 1') as any,
       resourceType: (item.resource_type || 'Notes') as any,
       academicYear: (item.academic_year || '2024-25') as any,
@@ -74,7 +74,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       isBookmarked: bookmarkedSet ? bookmarkedSet.has(item.id) : false,
       isVerified: Boolean(item.is_verified),
       uploader: {
-        id: uploaderData?.id || item.uploader_id || 'contributor',
+        id: uploaderData?.id || item.uploader_id || item.owner_id || 'contributor',
         name: uploaderData?.full_name || 'Student Contributor',
         avatar: uploaderData?.avatar_url || '',
         college: uploaderData?.college || 'SRMCEM Lucknow',
@@ -112,7 +112,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
 
       // Fetch all resources with uploader profile
-      const { data, error } = await supabase
+      const { data: initialData, error } = await supabase
         .from('resources')
         .select(`
           id,
@@ -145,9 +145,20 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         `)
         .order('created_at', { ascending: false });
 
+      let data = initialData;
+
       if (error) {
-        console.warn('[GitNote] Failed to fetch resources from Supabase:', error.message);
-        return;
+        // Resilient fallback: fetch all available columns without foreign key join
+        const fallbackRes = await supabase
+          .from('resources')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (!fallbackRes.error && fallbackRes.data) {
+          data = fallbackRes.data;
+        } else {
+          console.warn('[GitNote] Failed to fetch resources from Supabase:', error.message);
+          return;
+        }
       }
 
       if (data) {
@@ -421,12 +432,8 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // 1. Delete associated file from Supabase Storage bucket if present
       if (target?.storagePath && isSupabaseConfigured) {
         try {
-          const { error: storageErr } = await supabase.storage
-            .from('study-resources')
-            .remove([target.storagePath]);
-          if (storageErr) {
-            console.warn('[GitNote] Storage remove warning:', storageErr.message);
-          }
+          await supabase.storage.from('academic-resources').remove([target.storagePath]);
+          await supabase.storage.from('study-resources').remove([target.storagePath]);
         } catch (storageErr) {
           console.warn('[GitNote] Storage remove error:', storageErr);
         }
@@ -468,7 +475,23 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  const reportResource = (resourceId: string, reason: string, details: string) => {
+  const reportResource = async (resourceId: string, reason: string, details: string) => {
+    if (user && isSupabaseConfigured) {
+      try {
+        const { error } = await supabase.from('reports').insert({
+          resource_id: resourceId,
+          reporter_id: user.id,
+          reason,
+          details,
+          status: 'pending',
+        });
+        if (error) {
+          console.warn('[GitNote] Failed to submit report to Supabase:', error.message);
+        }
+      } catch (err) {
+        console.warn('[GitNote] Report submission exception:', err);
+      }
+    }
     addToast('info', 'Report Received', 'Thank you. Academic moderators will review this document within 24 hours.');
   };
 
@@ -503,12 +526,18 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Try downloading actual file from Supabase storage if storagePath exists
     if (resource.storagePath && isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase.storage
-          .from('study-resources')
+        let dl = await supabase.storage
+          .from('academic-resources')
           .download(resource.storagePath);
 
-        if (data && !error) {
-          const url = URL.createObjectURL(data);
+        if (dl.error) {
+          dl = await supabase.storage
+            .from('study-resources')
+            .download(resource.storagePath);
+        }
+
+        if (dl.data && !dl.error) {
+          const url = URL.createObjectURL(dl.data);
           const a = document.createElement('a');
           a.href = url;
           a.download = `${resource.title.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 32)}.${resource.fileFormat.toLowerCase()}`;

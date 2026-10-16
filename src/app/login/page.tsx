@@ -61,7 +61,9 @@ function LoginForm() {
 
       if (error) {
         let message = error.message;
-        if (message.toLowerCase().includes('invalid login credentials')) {
+        if (message === 'Failed to fetch' || message.toLowerCase().includes('failed to fetch')) {
+          message = 'Unable to reach Supabase (Failed to fetch). Please check if an ad-blocker or Brave Shields is blocking requests to supabase.co, or restart the dev server.';
+        } else if (message.toLowerCase().includes('invalid login credentials')) {
           message = 'Invalid email or password. Please verify your credentials or register a new account.';
         } else if (message.toLowerCase().includes('email not confirmed')) {
           message = 'Please confirm your email address. Check your inbox for the Supabase confirmation link.';

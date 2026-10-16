@@ -83,39 +83,51 @@ function ResourceDetailsContent() {
         `)
         .eq('id', resourceId)
         .maybeSingle()
-        .then(({ data, error }) => {
-          if (data && !error) {
-            const uploaderData = Array.isArray(data.uploader) ? data.uploader[0] : data.uploader;
+        .then(async ({ data, error }) => {
+          let resourceData = data;
+          if (error) {
+            const fallback = await supabase
+              .from('resources')
+              .select('*')
+              .eq('id', resourceId)
+              .maybeSingle();
+            if (!fallback.error && fallback.data) {
+              resourceData = fallback.data as any;
+            }
+          }
+
+          if (resourceData) {
+            const uploaderData = Array.isArray(resourceData.uploader) ? resourceData.uploader[0] : resourceData.uploader;
             setDbResource({
-              id: data.id,
-              title: data.title,
-              description: data.description || 'No description provided.',
-              subject: data.subject_name,
-              semester: data.semester as any,
-              resourceType: data.resource_type as any,
-              academicYear: data.academic_year as any,
-              fileFormat: (data.file_format || 'PDF') as any,
-              fileSize: data.file_size || '1.0 MB',
-              pageCount: data.page_count || 12,
-              downloadCount: data.download_count ?? 0,
-              viewCount: data.view_count ?? 0,
-              rating: Number(data.rating) || 5.0,
-              createdAt: data.created_at ? new Date(data.created_at).toISOString().split('T')[0] : '',
-              tags: data.tags || [],
+              id: resourceData.id,
+              title: resourceData.title,
+              description: resourceData.description || 'No description provided.',
+              subject: resourceData.subject_name || (resourceData as any).subject || 'General Engineering',
+              semester: resourceData.semester as any,
+              resourceType: resourceData.resource_type as any,
+              academicYear: resourceData.academic_year as any,
+              fileFormat: (resourceData.file_format || 'PDF') as any,
+              fileSize: resourceData.file_size || '1.0 MB',
+              pageCount: resourceData.page_count || 12,
+              downloadCount: resourceData.download_count ?? 0,
+              viewCount: resourceData.view_count ?? 0,
+              rating: Number(resourceData.rating) || 5.0,
+              createdAt: resourceData.created_at ? new Date(resourceData.created_at).toISOString().split('T')[0] : '',
+              tags: resourceData.tags || [],
               uploader: {
                 id: (uploaderData as any)?.id || 'contributor',
                 name: (uploaderData as any)?.full_name || 'Student Contributor',
                 avatar: (uploaderData as any)?.avatar_url || '',
                 college: (uploaderData as any)?.college || 'SRMCEM Lucknow',
                 branch: (uploaderData as any)?.branch || 'Computer Science & Engineering',
-                semester: (uploaderData as any)?.semester || data.semester || 'Semester 4',
-                verified: Boolean((uploaderData as any)?.is_verified ?? data.is_verified),
+                semester: (uploaderData as any)?.semester || resourceData.semester || 'Semester 4',
+                verified: Boolean((uploaderData as any)?.is_verified ?? resourceData.is_verified),
               },
-              isVerified: Boolean(data.is_verified),
+              isVerified: Boolean(resourceData.is_verified),
               previewContent: {
-                summary: (data.description || data.title).slice(0, 160) + '...',
-                keyTopics: data.tags && data.tags.length > 0 ? data.tags : ['Unit Overview', 'Important Concepts'],
-                sampleText: `Title: ${data.title}\nSubject: ${data.subject_name}\n\nDocument cataloged in GitNote academic repository.`,
+                summary: (resourceData.description || resourceData.title).slice(0, 160) + '...',
+                keyTopics: resourceData.tags && resourceData.tags.length > 0 ? resourceData.tags : ['Unit Overview', 'Important Concepts'],
+                sampleText: `Title: ${resourceData.title}\nSubject: ${resourceData.subject_name || (resourceData as any).subject || 'General'}\n\nDocument cataloged in GitNote academic repository.`,
               },
             });
           }
