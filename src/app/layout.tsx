@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Newsreader } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { ResourceProvider } from '@/context/ResourceContext';
@@ -15,17 +15,24 @@ const inter = Inter({
   variable: '--font-inter',
 });
 
+const newsreader = Newsreader({
+  subsets: ['latin'],
+  display: 'swap',
+  style: ['normal', 'italic'],
+  variable: '--font-serif',
+});
+
 export const viewport: Viewport = {
-  themeColor: '#4f46e5',
+  themeColor: '#1d3b64',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
 };
 
 export const metadata: Metadata = {
-  title: 'GitNote — Academic Precision | Learn. Share. Discover.',
+  title: 'GitNote — Academic Courseware & Exam Archive',
   description:
-    'GitNote is a modern academic resource-sharing platform for college students. Access previous year question papers (PYQs), lecture notes, assignments, and lab manuals in one organized place.',
+    'GitNote is a peer-curated academic resource-sharing repository for college students. Access previous year question papers (PYQs), lecture notes, assignments, and lab manuals in one organized digital library.',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
@@ -49,11 +56,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`h-full ${inter.variable}`}>
-      <body className="min-h-full flex flex-col bg-[#faf8ff] text-[#0f172a] font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900">
+    <html lang="en" className={`h-full ${inter.variable} ${newsreader.variable}`}>
+      <body className="min-h-full flex flex-col bg-[#fbfaf8] text-[#18181b] font-sans antialiased selection:bg-[#1d3b64]/10 selection:text-[#1d3b64]">
         <AuthProvider>
           <ResourceProvider>
-            <Suspense fallback={<div className="h-16 bg-[#0f172a]" />}>
+            <Suspense fallback={<div className="h-15 bg-white border-b border-[#e5e2db]" />}>
               <Navbar />
             </Suspense>
             <main className="flex-1">{children}</main>

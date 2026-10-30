@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { Search, X, Sparkles, Command } from 'lucide-react';
+import { Search, X, Command } from 'lucide-react';
 
 interface SearchBarProps {
   value: string;
@@ -17,9 +17,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   value,
   onChange,
   onClear,
-  placeholder = 'Search by subject, PYQ year, topic, or professor...',
+  placeholder = 'Search by subject code, title, exam year, or author...',
   className = '',
-  suggestions = ['DSA PYQ 2024', 'Operating Systems Notes', 'DBMS Lab Manual', 'Computer Networks', 'Discrete Math'],
+  suggestions = ['Data Structures PYQs', 'Operating Systems', 'DBMS Manual', 'Computer Networks', 'Discrete Mathematics'],
   onSelectSuggestion,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -33,8 +33,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <div className={`w-full ${className}`}>
       <div className="relative flex items-center group">
-        <div className="absolute left-4 pointer-events-none text-slate-400 group-focus-within:text-[#4f46e5] transition-colors">
-          <Search className="w-5 h-5" />
+        <div className="absolute left-3.5 pointer-events-none text-[#71717a] group-focus-within:text-[#1d3b64] transition-colors">
+          <Search className="w-4 h-4" />
         </div>
 
         <input
@@ -43,32 +43,31 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full pl-12 pr-12 py-3.5 bg-white border border-[#cbd5e1] rounded-2xl text-[#0f172a] placeholder-slate-400 text-sm md:text-base font-normal shadow-xs hover:border-slate-400 focus:border-[#4f46e5] focus:ring-4 focus:ring-indigo-100 transition-all outline-none"
+          className="w-full pl-10 pr-12 py-2.5 bg-white border border-[#e5e2db] rounded-md text-[#18181b] placeholder-[#a1a1aa] text-xs sm:text-sm font-normal shadow-2xs hover:border-[#c9c4b8] focus:border-[#1d3b64] focus:ring-1 focus:ring-[#1d3b64] transition-all outline-none"
         />
 
         {value ? (
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-3.5 p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
-            title="Clear search"
+            className="absolute right-3 p-1 text-[#71717a] hover:text-[#18181b] hover:bg-[#f4f2ee] rounded transition-colors cursor-pointer"
+            title="Clear search query"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         ) : (
-          <div className="hidden sm:flex absolute right-4 items-center gap-1 text-[11px] font-mono text-slate-400 bg-[#f8fafc] px-2 py-0.5 rounded-md border border-[#e2e8f0]">
-            <Command className="w-3 h-3 text-slate-400" />
+          <div className="hidden sm:flex absolute right-3 items-center gap-1 text-[10px] font-mono text-[#71717a] bg-[#f4f2ee] px-1.5 py-0.5 rounded border border-[#e5e2db]">
+            <Command className="w-2.5 h-2.5" />
             <span>K</span>
           </div>
         )}
       </div>
 
-      {/* Trending Search Chips */}
+      {/* Suggested Academic Topics */}
       {suggestions && suggestions.length > 0 && !value && (
-        <div className="flex items-center gap-2 mt-3 overflow-x-auto pb-1 text-xs text-slate-500 scrollbar-none">
-          <span className="flex items-center gap-1 shrink-0 font-semibold text-slate-400 text-[11px] tracking-wide uppercase">
-            <Sparkles className="w-3 h-3 text-[#7c3aed]" />
-            Trending:
+        <div className="flex items-center gap-1.5 mt-2.5 overflow-x-auto pb-1 text-xs text-[#71717a] scrollbar-none">
+          <span className="shrink-0 font-mono text-[11px] uppercase tracking-wider text-[#71717a] mr-1">
+            Common Searches:
           </span>
           {suggestions.map((item) => (
             <button
@@ -78,7 +77,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 if (onSelectSuggestion) onSelectSuggestion(item);
                 else onChange(item);
               }}
-              className="shrink-0 px-3 py-1 bg-white hover:bg-[#eef2ff] hover:text-[#4338ca] hover:border-[#c7d2fe] border border-[#e2e8f0] rounded-full text-slate-600 font-medium transition-all cursor-pointer text-xs shadow-2xs"
+              className="shrink-0 px-2.5 py-0.5 bg-[#f4f2ee] hover:bg-white hover:text-[#1d3b64] hover:border-[#c9c4b8] border border-[#e5e2db] rounded text-[#52525b] font-medium transition-colors cursor-pointer text-xs"
             >
               {item}
             </button>

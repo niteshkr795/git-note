@@ -12,6 +12,7 @@ interface ResourceGridProps {
   emptyType?: 'search' | 'bookmarks' | 'uploads' | 'generic';
   canDelete?: boolean;
   onDelete?: (resource: Resource) => void;
+  layout?: 'grid' | 'list';
 }
 
 export const ResourceGrid: React.FC<ResourceGridProps> = ({
@@ -20,6 +21,7 @@ export const ResourceGrid: React.FC<ResourceGridProps> = ({
   emptyType = 'search',
   canDelete,
   onDelete,
+  layout = 'grid',
 }) => {
   const [previewResource, setPreviewResource] = useState<Resource | null>(null);
 
@@ -29,17 +31,33 @@ export const ResourceGrid: React.FC<ResourceGridProps> = ({
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {resources.map((resource) => (
-          <ResourceCard
-            key={resource.id}
-            resource={resource}
-            canDelete={canDelete || emptyType === 'uploads'}
-            onDelete={onDelete}
-            onQuickPreview={(res) => setPreviewResource(res)}
-          />
-        ))}
-      </div>
+      {layout === 'list' ? (
+        <div className="space-y-2">
+          {resources.map((resource) => (
+            <ResourceCard
+              key={resource.id}
+              resource={resource}
+              layout="list"
+              canDelete={canDelete || emptyType === 'uploads'}
+              onDelete={onDelete}
+              onQuickPreview={(res) => setPreviewResource(res)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {resources.map((resource) => (
+            <ResourceCard
+              key={resource.id}
+              resource={resource}
+              layout="grid"
+              canDelete={canDelete || emptyType === 'uploads'}
+              onDelete={onDelete}
+              onQuickPreview={(res) => setPreviewResource(res)}
+            />
+          ))}
+        </div>
+      )}
 
       <QuickPreviewModal
         resource={previewResource}

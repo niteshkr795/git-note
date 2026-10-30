@@ -18,7 +18,6 @@ export const Badge: React.FC<BadgeProps> = ({
   className = '',
   icon,
 }) => {
-  // If resourceType is provided, automatically select Stitch Academic Precision styling
   let resolvedVariant = variant;
   if (resourceType) {
     switch (resourceType) {
@@ -35,29 +34,30 @@ export const Badge: React.FC<BadgeProps> = ({
         resolvedVariant = 'purple';
         break;
       case 'Study Material':
-        resolvedVariant = 'rose';
+        resolvedVariant = 'default';
         break;
     }
   }
 
-  // Academic Precision palette: Pill-shaped with fine 1px border and tracking
   const variants = {
-    default: 'bg-slate-100/80 text-slate-700 border-slate-200/90',
-    primary: 'bg-[#eef2ff] text-[#4338ca] border-[#e0e7ff]',
-    purple: 'bg-[#f5f3ff] text-[#7c3aed] border-[#ddd6fe]',
-    emerald: 'bg-[#ecfdf5] text-[#047857] border-[#a7f3d0]',
+    default: 'bg-[#f4f2ee] text-[#3f3f46] border-[#e5e2db]',
+    primary: 'bg-[#eef3f8] text-[#1d3b64] border-[#cfdbe8]',
+    purple: 'bg-[#faf5ff] text-[#6b21a8] border-[#e9d5ff]',
+    emerald: 'bg-[#f0fdf4] text-[#166534] border-[#bbf7d0]',
     teal: 'bg-[#f0fdfa] text-[#0f766e] border-[#ccfbf1]',
-    amber: 'bg-[#fffbeb] text-[#b45309] border-[#fde68a]',
-    rose: 'bg-[#fff1f2] text-[#be123c] border-[#fecdd3]',
+    amber: 'bg-[#fef9ee] text-[#92400e] border-[#fde68a]',
+    rose: 'bg-[#fff1f2] text-[#9f1239] border-[#fecdd3]',
   };
 
   const sizes = {
-    sm: 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full border tracking-[0.02em]',
-    md: 'text-xs font-semibold px-3 py-1 rounded-full border tracking-[0.02em]',
+    sm: 'text-[11px] font-medium px-2 py-0.5 rounded border tracking-tight',
+    md: 'text-xs font-medium px-2.5 py-0.5 rounded border tracking-tight',
   };
 
   return (
-    <span className={`inline-flex items-center gap-1.5 transition-colors select-none ${variants[resolvedVariant]} ${sizes[size]} ${className}`}>
+    <span
+      className={`inline-flex items-center gap-1 select-none font-mono ${variants[resolvedVariant]} ${sizes[size]} ${className}`}
+    >
       {icon && <span className="shrink-0">{icon}</span>}
       <span>{children}</span>
     </span>

@@ -26,7 +26,6 @@ export const InstallButton: React.FC<InstallButtonProps> = ({
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Check standalone
     const isStandaloneMode =
       window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as any).standalone === true;
@@ -66,10 +65,10 @@ export const InstallButton: React.FC<InstallButtonProps> = ({
         <button
           type="button"
           onClick={handleClick}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition-colors cursor-pointer ${className}`}
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium bg-[#f4f2ee] text-[#18181b] hover:bg-[#eae7e0] border border-[#e5e2db] transition-colors cursor-pointer ${className}`}
           title="Install GitNote App"
         >
-          <Download className="w-3.5 h-3.5" />
+          <Download className="w-3 h-3 text-[#1d3b64]" />
           <span>Install App</span>
         </button>
 
@@ -83,10 +82,10 @@ export const InstallButton: React.FC<InstallButtonProps> = ({
       <button
         type="button"
         onClick={handleClick}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer ${className}`}
+        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-[#52525b] hover:text-[#18181b] hover:bg-[#f4f2ee] transition-colors cursor-pointer ${className}`}
         title="Install GitNote to Home Screen"
       >
-        <Download className="w-3.5 h-3.5 text-indigo-400" />
+        <Download className="w-3.5 h-3.5 text-[#1d3b64]" />
         <span className="hidden sm:inline">Install App</span>
       </button>
 
@@ -101,28 +100,27 @@ const InstallGuideModal: React.FC<{
   isIos: boolean;
 }> = ({ isOpen, onClose, isIos }) => {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth="md" title="Install GitNote PWA">
-      <div className="space-y-4 text-xs text-slate-700">
-        <p className="text-slate-600">
-          GitNote is an installable Progressive Web App. You can install it directly from your
-          browser to launch it in a standalone window with fast cached loading.
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="md" title="Install GitNote App">
+      <div className="space-y-3.5 text-xs text-[#52525b]">
+        <p className="leading-relaxed">
+          GitNote is an installable Progressive Web App (PWA). You can install it directly from your browser for offline cached reading and quick launch.
         </p>
 
         {isIos ? (
-          <div className="space-y-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-            <p className="font-bold text-slate-900">On iPhone / iPad (Safari):</p>
-            <ol className="list-decimal pl-5 space-y-1 text-slate-600">
-              <li>Tap the <strong>Share</strong> button at the bottom of the Safari screen.</li>
-              <li>Scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong>.</li>
+          <div className="space-y-1.5 bg-[#fbfaf8] p-3 rounded-md border border-[#e5e2db]">
+            <p className="font-semibold text-[#18181b]">On Safari (iOS):</p>
+            <ol className="list-decimal pl-4 space-y-1 text-[#52525b]">
+              <li>Tap the <strong>Share</strong> icon in Safari.</li>
+              <li>Select <strong>&quot;Add to Home Screen&quot;</strong>.</li>
               <li>Tap <strong>&quot;Add&quot;</strong> in the top-right corner.</li>
             </ol>
           </div>
         ) : (
-          <div className="space-y-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-            <p className="font-bold text-slate-900">On Chrome / Edge / Desktop:</p>
-            <ol className="list-decimal pl-5 space-y-1 text-slate-600">
-              <li>Click the <strong>Install GitNote</strong> icon on the right side of your address bar.</li>
-              <li>Or click the 3 dots menu (⋮) in the browser and select <strong>&quot;Install GitNote...&quot;</strong>.</li>
+          <div className="space-y-1.5 bg-[#fbfaf8] p-3 rounded-md border border-[#e5e2db]">
+            <p className="font-semibold text-[#18181b]">On Chrome / Edge / Desktop:</p>
+            <ol className="list-decimal pl-4 space-y-1 text-[#52525b]">
+              <li>Click the <strong>Install</strong> icon in the address bar.</li>
+              <li>Or open the browser menu (⋮) and choose <strong>&quot;Install GitNote...&quot;</strong>.</li>
             </ol>
           </div>
         )}
@@ -131,7 +129,7 @@ const InstallGuideModal: React.FC<{
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition-colors"
+            className="px-3.5 py-1.5 rounded-md bg-[#1d3b64] text-white text-xs font-medium hover:bg-[#152b49] transition-colors"
           >
             Close
           </button>

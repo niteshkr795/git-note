@@ -12,9 +12,9 @@ import {
   User,
   Menu,
   X,
-  Home,
+  Compass,
   LogOut,
-  Search,
+  BookOpen,
 } from 'lucide-react';
 import { InstallButton } from '@/components/pwa/InstallButton';
 
@@ -49,15 +49,12 @@ export const Navbar: React.FC = () => {
     href: string;
     label: string;
     icon: React.ComponentType<{ className?: string }>;
-    highlight?: boolean;
   }
 
   const navLinks: NavLinkItem[] = [
-    { href: '/', label: 'Home', icon: Home },
-    { href: '/search', label: 'Search', icon: Search },
-    { href: '/upload', label: 'Upload', icon: UploadCloud, highlight: true },
-    { href: '/profile?tab=bookmarks', label: 'Bookmarks', icon: Bookmark },
-    { href: '/profile', label: 'Profile', icon: User },
+    { href: '/search', label: 'Library Catalog', icon: BookOpen },
+    { href: '/upload', label: 'Deposit Material', icon: UploadCloud },
+    { href: '/profile?tab=bookmarks', label: 'Saved Papers', icon: Bookmark },
   ];
 
   const isActive = (path: string) => {
@@ -68,39 +65,34 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#0f172a]/95 backdrop-blur-xl border-b border-white/10 text-white transition-all shadow-sm">
+    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-xs border-b border-[#e5e2db] text-[#18181b] transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Brand Logo */}
-          <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-white shadow-md border border-white/20 group-hover:scale-105 transition-transform flex items-center justify-center p-0.5">
+        <div className="flex items-center justify-between h-15">
+          {/* Brand Logo & Editorial Wordmark */}
+          <div className="flex items-center gap-7">
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="w-8 h-8 rounded border border-[#e5e2db] bg-[#fbfaf8] p-1 flex items-center justify-center shrink-0">
                 <Image
                   src="/logo.png"
                   alt="GitNote Logo"
-                  width={40}
-                  height={40}
-                  className="w-full h-full object-contain rounded-lg"
+                  width={28}
+                  height={28}
+                  className="w-full h-full object-contain"
                   priority
                 />
               </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-xl tracking-tight text-white font-mono">
-                    Git<span className="text-[#818cf8]">Note</span>
-                  </span>
-                  <span className="text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                    Academic
-                  </span>
-                </div>
-                <span className="text-[10px] text-slate-400 font-medium tracking-wide">
-                  Learn. Share. Discover.
+              <div className="flex items-baseline gap-2">
+                <span className="font-editorial text-xl font-semibold tracking-tight text-[#18181b]">
+                  Git<span className="text-[#1d3b64]">Note</span>
+                </span>
+                <span className="hidden sm:inline-block text-[10px] font-mono uppercase tracking-wider text-[#71717a] border border-[#e5e2db] bg-[#f4f2ee] px-1.5 py-0.5 rounded">
+                  Archive
                 </span>
               </div>
             </Link>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden md:flex items-center gap-1 ml-4">
+            <nav className="hidden md:flex items-center gap-1">
               {navLinks.map((link) => {
                 const Icon = link.icon;
                 const active = isActive(link.href);
@@ -108,15 +100,13 @@ export const Navbar: React.FC = () => {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                       active
-                        ? 'bg-white/10 text-white shadow-inner border border-white/10'
-                        : link.highlight
-                        ? 'text-indigo-300 hover:text-white hover:bg-indigo-500/20'
-                        : 'text-slate-300 hover:text-white hover:bg-white/5'
+                        ? 'bg-[#f4f2ee] text-[#18181b] font-semibold border border-[#e5e2db]'
+                        : 'text-[#52525b] hover:text-[#18181b] hover:bg-[#faf9f7]'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${active ? 'text-indigo-400' : 'text-slate-400'}`} />
+                    <Icon className={`w-3.5 h-3.5 ${active ? 'text-[#1d3b64]' : 'text-[#71717a]'}`} />
                     <span>{link.label}</span>
                   </Link>
                 );
@@ -124,91 +114,73 @@ export const Navbar: React.FC = () => {
             </nav>
           </div>
 
-          {/* Right Header Section */}
+          {/* Right Header Navigation & Student Account */}
           <div className="hidden sm:flex items-center gap-3">
-            <InstallButton />
-            {user ? (
-              <>
-                <Link
-                  href="/upload"
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-[#4f46e5] text-white hover:bg-[#4338ca] hover:scale-[1.01] active:bg-[#3730a3] transition-all shadow-sm"
-                >
-                  <UploadCloud className="w-3.5 h-3.5" />
-                  <span>Share Notes</span>
-                </Link>
+            <InstallButton className="text-xs text-[#52525b] hover:text-[#18181b]" />
 
-                {/* User Profile Mini Pill */}
+            <Link
+              href="/upload"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-[#1d3b64] text-white hover:bg-[#152b49] transition-colors border border-[#152b49] shadow-2xs"
+            >
+              <UploadCloud className="w-3.5 h-3.5" />
+              <span>Contribute</span>
+            </Link>
+
+            {user ? (
+              <div className="flex items-center gap-2 pl-2 border-l border-[#e5e2db]">
                 <Link
                   href="/profile"
-                  className="flex items-center gap-2 pl-2 pr-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all group"
+                  className="flex items-center gap-2 p-1 pl-1.5 pr-2.5 rounded-md border border-[#e5e2db] hover:border-[#c9c4b8] bg-[#fbfaf8] hover:bg-white transition-colors group"
                 >
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-[10px] font-bold text-white shadow-2xs overflow-hidden">
+                  <div className="w-6 h-6 rounded bg-[#1d3b64] text-white flex items-center justify-center text-[11px] font-semibold font-mono shrink-0 overflow-hidden">
                     {displayAvatar ? (
                       <img src={displayAvatar} alt={displayName} className="w-full h-full object-cover" />
                     ) : (
                       displayInitial
                     )}
                   </div>
-                  <span className="text-xs font-medium text-slate-200 group-hover:text-white max-w-[120px] truncate">
+                  <span className="text-xs font-medium text-[#18181b] truncate max-w-[120px]">
                     {displayName.split(' ')[0]}
                   </span>
                 </Link>
 
-                {/* Sign Out Button */}
                 <button
                   type="button"
                   onClick={handleSignOut}
                   disabled={isSigningOut}
-                  title="Sign Out"
-                  className="p-2 rounded-xl text-slate-400 hover:text-rose-300 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all cursor-pointer"
+                  title="Sign out"
+                  className="p-1.5 text-[#71717a] hover:text-[#18181b] hover:bg-[#f4f2ee] rounded-md transition-colors"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-3.5 h-3.5" />
                 </button>
-              </>
+              </div>
             ) : (
-              <>
+              <div className="flex items-center gap-2 pl-2 border-l border-[#e5e2db]">
                 <Link
                   href="/login"
-                  className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                  className="px-3 py-1.5 rounded-md text-xs font-medium text-[#52525b] hover:text-[#18181b] hover:bg-[#f4f2ee] transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/signup"
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-[#4f46e5] text-white hover:bg-[#4338ca] hover:scale-[1.01] active:bg-[#3730a3] transition-all shadow-sm"
+                  className="px-3 py-1.5 rounded-md text-xs font-medium border border-[#e5e2db] hover:border-[#c9c4b8] bg-white text-[#18181b] transition-colors shadow-2xs"
                 >
-                  <span>Sign Up</span>
+                  Register
                 </Link>
-              </>
+              </div>
             )}
           </div>
 
-          {/* Mobile menu hamburger toggle */}
-          <div className="flex md:hidden items-center gap-1.5">
-            <Link
-              href="/search"
-              className={`p-2 rounded-xl transition-colors ${
-                isActive('/search')
-                  ? 'bg-white/10 text-white'
-                  : 'text-slate-300 hover:text-white hover:bg-white/10'
-              }`}
-              aria-label="Search Resources"
-            >
-              <Search className="w-5 h-5" />
-            </Link>
-            <Link
-              href="/upload"
-              className="p-2 text-indigo-400 hover:text-white hover:bg-white/10 rounded-xl"
-              aria-label="Upload"
-            >
-              <UploadCloud className="w-5 h-5" />
-            </Link>
+          {/* Mobile Menu Toggle Button */}
+          <div className="flex items-center gap-2 sm:hidden">
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-              aria-label="Toggle Navigation Menu"
+              className="p-1.5 rounded-md text-[#52525b] hover:text-[#18181b] hover:bg-[#f4f2ee] transition-colors border border-[#e5e2db]"
+              aria-label="Toggle navigation menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -216,8 +188,19 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#0f172a] border-b border-white/10 px-4 pt-3 pb-6 space-y-3 animate-in slide-in-from-top duration-200">
-          <div className="grid grid-cols-1 gap-1">
+        <div className="sm:hidden border-t border-[#e5e2db] bg-[#fbfaf8] px-4 pt-3 pb-5 space-y-3">
+          <div className="space-y-1">
+            <Link
+              href="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium ${
+                pathname === '/' ? 'bg-[#f4f2ee] text-[#18181b] font-semibold border border-[#e5e2db]' : 'text-[#52525b]'
+              }`}
+            >
+              <Compass className="w-4 h-4 text-[#71717a]" />
+              <span>Library Home</span>
+            </Link>
+
             {navLinks.map((link) => {
               const Icon = link.icon;
               const active = isActive(link.href);
@@ -226,33 +209,35 @@ export const Navbar: React.FC = () => {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-                    active
-                      ? 'bg-white/10 text-white'
-                      : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium ${
+                    active ? 'bg-[#f4f2ee] text-[#18181b] font-semibold border border-[#e5e2db]' : 'text-[#52525b]'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${active ? 'text-indigo-400' : 'text-slate-400'}`} />
+                  <Icon className="w-4 h-4 text-[#71717a]" />
                   <span>{link.label}</span>
                 </Link>
               );
             })}
           </div>
 
-          <div className="pt-3 border-t border-white/10 flex flex-col gap-2">
+          <div className="pt-3 border-t border-[#e5e2db] space-y-2">
             {user ? (
               <>
-                <div className="flex items-center justify-between text-xs text-slate-400 px-3 py-1">
-                  <span>Signed in as:</span>
-                  <span className="font-semibold text-white truncate max-w-[180px]">{displayName}</span>
-                </div>
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium text-[#18181b] bg-white border border-[#e5e2db]"
+                >
+                  <User className="w-4 h-4 text-[#1d3b64]" />
+                  <span>Student Profile ({displayName})</span>
+                </Link>
                 <button
                   type="button"
                   onClick={handleSignOut}
                   disabled={isSigningOut}
-                  className="flex items-center justify-center gap-2 w-full py-2.5 text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/20 rounded-xl hover:bg-rose-500/20 transition-all cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium text-[#991b1b] hover:bg-[#fef2f2] transition-colors"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
+                  <LogOut className="w-4 h-4 text-[#991b1b]" />
                   <span>Sign Out</span>
                 </button>
               </>
@@ -261,23 +246,19 @@ export const Navbar: React.FC = () => {
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-center py-2 text-xs font-semibold bg-white/10 text-white rounded-xl hover:bg-white/15"
+                  className="flex items-center justify-center px-3 py-2 rounded-md text-xs font-medium border border-[#e5e2db] bg-white text-[#18181b]"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/signup"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-center py-2 text-xs font-semibold bg-[#4f46e5] text-white rounded-xl hover:bg-[#4338ca]"
+                  className="flex items-center justify-center px-3 py-2 rounded-md text-xs font-medium bg-[#1d3b64] text-white"
                 >
-                  Sign Up
+                  Register
                 </Link>
               </div>
             )}
-
-            <div className="pt-2">
-              <InstallButton variant="pill" className="w-full justify-center py-2" />
-            </div>
           </div>
         </div>
       )}

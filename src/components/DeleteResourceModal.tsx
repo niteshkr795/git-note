@@ -6,7 +6,7 @@ import { Modal } from '@/components/Modal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { useResources } from '@/context/ResourceContext';
-import { Trash2, AlertTriangle, FileText, Calendar, GraduationCap } from 'lucide-react';
+import { Trash2, AlertTriangle, FileText, GraduationCap } from 'lucide-react';
 
 interface DeleteResourceModalProps {
   resource: Resource | null;
@@ -43,58 +43,57 @@ export const DeleteResourceModal: React.FC<DeleteResourceModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} maxWidth="md">
-      <div className="space-y-5">
-        {/* Header with Danger Accent */}
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200/80 flex items-center justify-center text-rose-600 shrink-0 shadow-xs">
-            <Trash2 className="w-6 h-6 text-rose-600" />
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded bg-[#fef2f2] border border-[#fecaca] flex items-center justify-center text-[#991b1b] shrink-0">
+            <Trash2 className="w-5 h-5 text-[#991b1b]" />
           </div>
 
-          <div className="space-y-1">
-            <h3 className="text-lg font-extrabold text-[#0f172a] tracking-tight">
-              Delete Document?
+          <div className="space-y-0.5">
+            <h3 className="font-editorial text-lg font-semibold text-[#18181b] tracking-tight">
+              Delete Document Record?
             </h3>
-            <p className="text-xs text-[#64748b] leading-relaxed">
-              Are you sure you want to remove this academic material from GitNote? This action is permanent and cannot be undone.
+            <p className="text-xs text-[#71717a] leading-relaxed">
+              Are you sure you want to permanently remove this document from the institutional catalog?
             </p>
           </div>
         </div>
 
-        {/* Resource Details Preview Box */}
-        <div className="bg-[#faf8ff] rounded-2xl border border-[#e2e8f0] p-4 space-y-3">
+        {/* Resource Details Preview */}
+        <div className="bg-[#fbfaf8] rounded-md border border-[#e5e2db] p-3.5 space-y-2">
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge resourceType={resource.resourceType} size="sm">
               {resource.resourceType}
             </Badge>
-            <span className="text-[11px] font-semibold text-slate-700 bg-white px-2.5 py-0.5 rounded-full border border-slate-200">
+            <span className="text-[11px] font-mono text-[#52525b] bg-[#f4f2ee] px-2 py-0.5 rounded border border-[#e5e2db]">
               {resource.semester}
             </span>
-            <span className="text-[11px] font-medium text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200 flex items-center gap-1 font-mono">
-              <FileText className="w-3 h-3 text-[#4f46e5]" />
+            <span className="text-[11px] font-mono text-[#71717a]">
               {resource.fileFormat} • {resource.fileSize}
             </span>
           </div>
 
-          <h4 className="text-sm font-bold text-[#0f172a] leading-snug line-clamp-2">
+          <h4 className="text-xs sm:text-sm font-medium text-[#18181b] leading-snug line-clamp-2">
             {resource.title}
           </h4>
 
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#4338ca] bg-[#eef2ff] px-2.5 py-1 rounded-lg w-fit border border-[#e0e7ff]">
-            <GraduationCap className="w-3.5 h-3.5 text-[#4f46e5]" />
+          <div className="flex items-center gap-1.5 text-xs text-[#52525b]">
+            <GraduationCap className="w-3.5 h-3.5 text-[#71717a]" />
             <span className="truncate max-w-[260px]">{resource.subject}</span>
           </div>
         </div>
 
-        {/* Warning callout */}
-        <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50/80 border border-amber-200/80 text-amber-900 text-xs">
-          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+        {/* Notice */}
+        <div className="flex items-start gap-2 p-2.5 rounded bg-[#fef9ee] border border-[#fde68a] text-[#92400e] text-xs">
+          <AlertTriangle className="w-3.5 h-3.5 text-[#b45309] shrink-0 mt-0.5" />
           <p className="leading-relaxed">
-            Classmates will no longer be able to discover, view, or download this file once it is removed from the library.
+            Students will no longer be able to discover or download this document once removed.
           </p>
         </div>
 
-        {/* Actions Footer */}
-        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#f1f5f9]">
+        {/* Actions */}
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#eeece6]">
           <Button
             type="button"
             variant="outline"
@@ -102,19 +101,18 @@ export const DeleteResourceModal: React.FC<DeleteResourceModalProps> = ({
             onClick={onClose}
             disabled={isDeleting}
           >
-            Keep Document
+            Cancel
           </Button>
 
           <Button
             type="button"
             variant="danger"
             size="sm"
-            onClick={handleDelete}
             isLoading={isDeleting}
-            leftIcon={<Trash2 className="w-4 h-4" />}
-            className="shadow-xs font-semibold"
+            onClick={handleDelete}
+            leftIcon={<Trash2 className="w-3.5 h-3.5" />}
           >
-            Delete Permanently
+            Confirm Deletion
           </Button>
         </div>
       </div>

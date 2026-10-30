@@ -17,6 +17,7 @@ import {
   AlertCircle,
   UserPlus,
   CheckCircle2,
+  Building2,
 } from 'lucide-react';
 
 export default function SignupPage() {
@@ -46,13 +47,13 @@ export default function SignupPage() {
     }
 
     if (!email.trim()) {
-      errs.email = 'College email address is required.';
+      errs.email = 'Student email address is required.';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      errs.email = 'Please provide a valid email.';
+      errs.email = 'Please provide a valid email address.';
     }
 
     if (!college.trim()) {
-      errs.college = 'College name is required.';
+      errs.college = 'College/Institution name is required.';
     }
 
     if (!password) {
@@ -66,7 +67,7 @@ export default function SignupPage() {
     }
 
     if (!agreeTerms) {
-      errs.terms = 'You must agree to the academic sharing guidelines.';
+      errs.terms = 'You must agree to academic integrity and sharing standards.';
     }
 
     setErrors(errs);
@@ -91,36 +92,26 @@ export default function SignupPage() {
       if (error) {
         let msg = error.message;
         if (msg === 'Failed to fetch' || msg.toLowerCase().includes('failed to fetch')) {
-          msg = 'Unable to reach Supabase (Failed to fetch). Common causes: 1) An ad-blocker (like Brave Shields, uBlock Origin) is blocking requests to supabase.co, 2) The local dev server needs a restart to load .env.local, or 3) Supabase project credentials are not configured in your hosting environment.';
+          msg = 'Unable to connect to Supabase. Check your internet connection or ad-blockers.';
         } else if (msg.toLowerCase().includes('already registered')) {
           msg = 'An account with this email already exists. Please sign in instead.';
         } else if (msg.toLowerCase().includes('rate limit')) {
-          msg = 'Email rate limit exceeded (Supabase default limit is 3-4 emails/hr). In Supabase Dashboard → Authentication → Providers → Email, turn OFF "Confirm email" to register instantly without email verification limits.';
+          msg = 'Email rate limit reached. In Supabase Dashboard, disable "Confirm email" or wait a few minutes.';
         }
         setErrors({ form: msg });
         addToast('error', 'Registration Failed', msg);
       } else {
-        // If session was established immediately (confirm email disabled in Supabase)
-        if (data?.session) {
-          addToast(
-            'success',
-            'Account Created!',
-            `Welcome to GitNote, ${fullName.split(' ')[0]}!`
-          );
+        if (data.session) {
+          addToast('success', 'Account Created', 'Welcome to GitNote! Your student profile is active.');
           router.push('/profile');
           router.refresh();
         } else {
-          // If email confirmation is required by Supabase project
           setVerificationSent(true);
-          addToast(
-            'success',
-            'Verification Email Sent',
-            'Please check your student email to activate your account.'
-          );
+          addToast('info', 'Verification Email Sent', 'Check your inbox to verify your student email address.');
         }
       }
     } catch (err: any) {
-      const msg = err?.message || 'Failed to complete registration.';
+      const msg = err?.message || 'An unexpected error occurred during account creation.';
       setErrors({ form: msg });
       addToast('error', 'Registration Error', msg);
     } finally {
@@ -129,71 +120,70 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 bg-[#faf8ff]">
-      <div className="w-full max-w-lg space-y-8">
+    <div className="min-h-[85vh] flex items-center justify-center px-4 py-10 bg-[#fbfaf8]">
+      <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center">
-          <Link href="/" className="inline-flex items-center gap-3 mb-4 group">
-            <div className="w-12 h-12 rounded-2xl bg-white p-1 shadow-md border border-slate-200/90 group-hover:scale-105 transition-transform flex items-center justify-center overflow-hidden">
+          <Link href="/" className="inline-flex items-center gap-2 mb-3 group">
+            <div className="w-8 h-8 rounded border border-[#e5e2db] bg-white p-1 flex items-center justify-center">
               <Image
                 src="/logo.png"
                 alt="GitNote Logo"
-                width={48}
-                height={48}
+                width={28}
+                height={28}
                 className="w-full h-full object-contain"
                 priority
               />
             </div>
-            <span className="font-extrabold text-2xl tracking-tight text-[#0f172a] font-mono">
-              Git<span className="text-[#4f46e5]">Note</span>
+            <span className="font-editorial text-xl font-semibold tracking-tight text-[#18181b]">
+              Git<span className="text-[#1d3b64]">Note</span>
             </span>
           </Link>
 
-          <h2 className="text-2xl font-bold text-[#0f172a] tracking-tight">
-            Create Student Account
+          <h2 className="font-editorial text-xl font-semibold text-[#18181b] tracking-tight">
+            Register Student Contributor Account
           </h2>
-          <p className="text-xs text-[#475569] mt-1.5">
-            Join your university peers sharing previous year papers, notes, and lab manuals
+          <p className="text-xs text-[#71717a] mt-1">
+            Join your college community to catalog notes and access verified examination papers
           </p>
         </div>
 
-        {/* Verification Sent Success Banner */}
         {verificationSent ? (
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] p-8 shadow-xs space-y-5 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-[#ecfdf5] border border-[#a7f3d0] flex items-center justify-center mx-auto text-[#10b981]">
-              <CheckCircle2 className="w-8 h-8" />
+          <div className="bg-white rounded-md border border-[#e5e2db] p-8 text-center shadow-2xs space-y-4">
+            <div className="w-12 h-12 rounded bg-[#f0fdf4] text-[#166534] flex items-center justify-center mx-auto border border-[#bbf7d0]">
+              <CheckCircle2 className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-[#0f172a]">Verification Email Dispatched</h3>
-            <p className="text-xs text-[#475569] leading-relaxed max-w-sm mx-auto">
-              We have sent an activation link to <strong className="text-[#0f172a]">{email}</strong>. Please check your inbox (and spam folder) to complete registration.
+            <h3 className="font-editorial text-lg font-semibold text-[#18181b]">
+              Verification Email Sent
+            </h3>
+            <p className="text-xs text-[#71717a] leading-relaxed">
+              We dispatched an activation link to <strong className="text-[#18181b]">{email}</strong>. Open the link to confirm your account and begin depositing study materials.
             </p>
             <div className="pt-2">
               <Link href="/login">
-                <Button variant="primary" size="md" className="w-full">
-                  Proceed to Sign In
+                <Button variant="primary" size="sm" className="w-full">
+                  Return to Sign In
                 </Button>
               </Link>
             </div>
           </div>
         ) : (
-          /* Form Container */
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] p-8 shadow-xs space-y-6">
-            {/* Global Error Banner */}
+          <div className="bg-white rounded-md border border-[#e5e2db] p-6 shadow-2xs space-y-4">
             {errors.form && (
-              <div className="bg-rose-50 border border-rose-200 rounded-xl p-3.5 flex items-start gap-2.5 text-xs text-rose-700 animate-in fade-in duration-200">
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <div className="bg-[#fef2f2] border border-[#fecaca] rounded p-3 flex items-start gap-2 text-xs text-[#991b1b]">
+                <AlertCircle className="w-3.5 h-3.5 text-[#991b1b] shrink-0 mt-0.5" />
                 <p className="leading-relaxed">{errors.form}</p>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3.5">
               {/* Full Name */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Full Name <span className="text-rose-500">*</span>
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-[#71717a] mb-1">
+                  Full Name <span className="text-[#991b1b]">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute left-3.5 top-3.5 text-slate-400">
+                  <div className="absolute left-3 top-2.5 text-[#a1a1aa]">
                     <User className="w-4 h-4" />
                   </div>
                   <input
@@ -210,17 +200,17 @@ export default function SignupPage() {
                         });
                       }
                     }}
-                    placeholder="Aarav Sharma"
-                    className={`w-full pl-10 pr-3 py-3 text-xs sm:text-sm bg-white border rounded-xl outline-none transition-all ${
+                    placeholder="e.g. Aarav Sharma"
+                    className={`w-full pl-9 pr-3 py-2 text-xs bg-white border rounded-md outline-none transition-colors ${
                       errors.fullName
-                        ? 'border-rose-400 focus:ring-2 focus:ring-rose-100'
-                        : 'border-[#cbd5e1] focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100'
+                        ? 'border-[#fecaca] focus:border-[#991b1b]'
+                        : 'border-[#e5e2db] focus:border-[#1d3b64] focus:ring-1 focus:ring-[#1d3b64]'
                     }`}
                   />
                 </div>
                 {errors.fullName && (
-                  <p className="text-xs text-rose-600 font-medium mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <p className="text-xs text-[#991b1b] mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 shrink-0" />
                     {errors.fullName}
                   </p>
                 )}
@@ -228,11 +218,11 @@ export default function SignupPage() {
 
               {/* Email */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  College Email <span className="text-rose-500">*</span>
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-[#71717a] mb-1">
+                  Student Email <span className="text-[#991b1b]">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute left-3.5 top-3.5 text-slate-400">
+                  <div className="absolute left-3 top-2.5 text-[#a1a1aa]">
                     <Mail className="w-4 h-4" />
                   </div>
                   <input
@@ -249,45 +239,45 @@ export default function SignupPage() {
                         });
                       }
                     }}
-                    placeholder="aarav.cs23@srmcem.ac.in"
-                    className={`w-full pl-10 pr-3 py-3 text-xs sm:text-sm bg-white border rounded-xl outline-none transition-all ${
+                    placeholder="student@srmcem.ac.in"
+                    className={`w-full pl-9 pr-3 py-2 text-xs bg-white border rounded-md outline-none transition-colors ${
                       errors.email
-                        ? 'border-rose-400 focus:ring-2 focus:ring-rose-100'
-                        : 'border-[#cbd5e1] focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100'
+                        ? 'border-[#fecaca] focus:border-[#991b1b]'
+                        : 'border-[#e5e2db] focus:border-[#1d3b64] focus:ring-1 focus:ring-[#1d3b64]'
                     }`}
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-xs text-rose-600 font-medium mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <p className="text-xs text-[#991b1b] mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 shrink-0" />
                     {errors.email}
                   </p>
                 )}
               </div>
 
-              {/* College & Branch */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* College & Semester */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                    College Institution
+                  <label className="block text-[11px] font-mono uppercase tracking-wider text-[#71717a] mb-1">
+                    Institution <span className="text-[#991b1b]">*</span>
                   </label>
                   <input
                     type="text"
                     value={college}
                     onChange={(e) => setCollege(e.target.value)}
-                    placeholder="e.g. SRMCEM"
-                    className="w-full p-3 text-xs sm:text-sm bg-white border border-[#cbd5e1] rounded-xl outline-none focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100 transition-all"
+                    placeholder="SRMCEM Lucknow"
+                    className="w-full px-2.5 py-2 text-xs bg-white border border-[#e5e2db] rounded-md outline-none focus:border-[#1d3b64] focus:ring-1 focus:ring-[#1d3b64] transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  <label className="block text-[11px] font-mono uppercase tracking-wider text-[#71717a] mb-1">
                     Current Semester
                   </label>
                   <select
                     value={semester}
                     onChange={(e) => setSemester(e.target.value)}
-                    className="w-full p-3 text-xs sm:text-sm bg-white border border-[#cbd5e1] rounded-xl outline-none focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100 transition-all cursor-pointer"
+                    className="w-full px-2 py-2 text-xs bg-white border border-[#e5e2db] rounded-md outline-none focus:border-[#1d3b64] focus:ring-1 focus:ring-[#1d3b64] transition-colors cursor-pointer"
                   >
                     {SEMESTERS.map((s) => (
                       <option key={s} value={s}>
@@ -299,10 +289,10 @@ export default function SignupPage() {
               </div>
 
               {/* Passwords */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Password <span className="text-rose-500">*</span>
+                  <label className="block text-[11px] font-mono uppercase tracking-wider text-[#71717a] mb-1">
+                    Password <span className="text-[#991b1b]">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -320,32 +310,29 @@ export default function SignupPage() {
                         }
                       }}
                       placeholder="At least 6 chars"
-                      className={`w-full p-3 text-xs sm:text-sm bg-white border rounded-xl outline-none transition-all ${
+                      className={`w-full pl-3 pr-8 py-2 text-xs bg-white border rounded-md outline-none transition-colors ${
                         errors.password
-                          ? 'border-rose-400 focus:ring-2 focus:ring-rose-100'
-                          : 'border-[#cbd5e1] focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100'
+                          ? 'border-[#fecaca] focus:border-[#991b1b]'
+                          : 'border-[#e5e2db] focus:border-[#1d3b64] focus:ring-1 focus:ring-[#1d3b64]'
                       }`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                      className="absolute right-2 top-2 text-[#a1a1aa] hover:text-[#18181b]"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="text-xs text-rose-600 font-medium mt-1 flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                      {errors.password}
-                    </p>
+                    <p className="text-xs text-[#991b1b] mt-1">{errors.password}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Confirm Password <span className="text-rose-500">*</span>
+                  <label className="block text-[11px] font-mono uppercase tracking-wider text-[#71717a] mb-1">
+                    Confirm Password <span className="text-[#991b1b]">*</span>
                   </label>
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -361,25 +348,22 @@ export default function SignupPage() {
                         });
                       }
                     }}
-                    placeholder="Re-enter password"
-                    className={`w-full p-3 text-xs sm:text-sm bg-white border rounded-xl outline-none transition-all ${
+                    placeholder="Repeat password"
+                    className={`w-full px-3 py-2 text-xs bg-white border rounded-md outline-none transition-colors ${
                       errors.confirmPassword
-                        ? 'border-rose-400 focus:ring-2 focus:ring-rose-100'
-                        : 'border-[#cbd5e1] focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100'
+                        ? 'border-[#fecaca] focus:border-[#991b1b]'
+                        : 'border-[#e5e2db] focus:border-[#1d3b64] focus:ring-1 focus:ring-[#1d3b64]'
                     }`}
                   />
                   {errors.confirmPassword && (
-                    <p className="text-xs text-rose-600 font-medium mt-1 flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                      {errors.confirmPassword}
-                    </p>
+                    <p className="text-xs text-[#991b1b] mt-1">{errors.confirmPassword}</p>
                   )}
                 </div>
               </div>
 
               {/* Terms checkbox */}
-              <div>
-                <label className="flex items-start gap-2.5 cursor-pointer text-xs text-[#475569] pt-1">
+              <div className="pt-1">
+                <label className="flex items-start gap-2 cursor-pointer text-xs text-[#52525b]">
                   <input
                     type="checkbox"
                     checked={agreeTerms}
@@ -394,17 +378,14 @@ export default function SignupPage() {
                         });
                       }
                     }}
-                    className="w-4 h-4 mt-0.5 rounded border-[#cbd5e1] text-[#4f46e5] focus:ring-[#4f46e5]"
+                    className="w-3.5 h-3.5 mt-0.5 rounded border-[#e5e2db] text-[#1d3b64] focus:ring-[#1d3b64]"
                   />
                   <span>
-                    I agree to the academic sharing honor code and declare that all shared materials conform to college exam integrity standards.
+                    I commit to the academic sharing guidelines and verify that deposited resources conform to syllabus standards.
                   </span>
                 </label>
                 {errors.terms && (
-                  <p className="text-xs text-rose-600 font-medium mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                    {errors.terms}
-                  </p>
+                  <p className="text-xs text-[#991b1b] mt-1">{errors.terms}</p>
                 )}
               </div>
 
@@ -412,25 +393,25 @@ export default function SignupPage() {
               <Button
                 type="submit"
                 variant="primary"
-                size="lg"
+                size="md"
                 isLoading={isLoading}
                 className="w-full mt-2"
-                rightIcon={<UserPlus className="w-4 h-4" />}
+                rightIcon={<UserPlus className="w-3.5 h-3.5" />}
               >
-                Complete Registration
+                Create Account
               </Button>
             </form>
           </div>
         )}
 
         {/* Footer Link to Login */}
-        <p className="text-center text-xs text-[#475569]">
-          Already have an account?{' '}
+        <p className="text-center text-xs text-[#71717a]">
+          Already registered in the archive?{' '}
           <Link
             href="/login"
-            className="font-bold text-[#4f46e5] hover:text-[#4338ca] hover:underline"
+            className="font-medium text-[#1d3b64] hover:underline"
           >
-            Sign In to Account
+            Sign In
           </Link>
         </p>
       </div>

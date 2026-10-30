@@ -1,5 +1,5 @@
 import React from 'react';
-import { SearchX, FolderPlus, BookOpen, RotateCcw } from 'lucide-react';
+import { Search, FolderOpen, BookOpen, RotateCcw } from 'lucide-react';
 import { Button } from './ui/Button';
 
 interface EmptyStateProps {
@@ -19,28 +19,28 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   const configs = {
     search: {
-      icon: SearchX,
-      defaultTitle: 'No Matching Academic Resources Found',
-      defaultDesc: 'Try adjusting your search terms, changing the semester filter, or clearing selected tags.',
+      icon: Search,
+      defaultTitle: 'No Matching Academic Records Found',
+      defaultDesc: 'Try adjusting your subject terms, broadening the semester filter, or clearing keyword constraints.',
       defaultAction: 'Reset Filters',
     },
     bookmarks: {
       icon: BookOpen,
-      defaultTitle: 'No Bookmarked Resources Yet',
-      defaultDesc: 'Save high-yield PYQs, lecture notes, and lab manuals while browsing to quickly revisit them during exams.',
-      defaultAction: 'Explore Resources',
+      defaultTitle: 'No Saved Materials in Your Archive',
+      defaultDesc: 'Bookmark exam question papers, verified lecture notes, or lab manuals while browsing to review them later.',
+      defaultAction: 'Browse Library Catalog',
     },
     uploads: {
-      icon: FolderPlus,
-      defaultTitle: 'You Haven’t Contributed Any Resources Yet',
-      defaultDesc: 'Help fellow students by uploading your solved question papers, notes, or lab manuals.',
-      defaultAction: 'Upload Your First Resource',
+      icon: FolderOpen,
+      defaultTitle: 'No Documents Deposited Yet',
+      defaultDesc: 'Share your solved previous year question papers, typed summaries, or lab manuals to help your academic peers.',
+      defaultAction: 'Deposit First Resource',
     },
     generic: {
-      icon: SearchX,
-      defaultTitle: 'Nothing Here Right Now',
-      defaultDesc: 'Check back soon or explore other academic subjects.',
-      defaultAction: 'Back to Home',
+      icon: Search,
+      defaultTitle: 'No Records to Display',
+      defaultDesc: 'This collection currently has no cataloged entries.',
+      defaultAction: 'Return to Library',
     },
   };
 
@@ -48,25 +48,25 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   const Icon = current.icon;
 
   return (
-    <div className="bg-white border border-dashed border-[#cbd5e1] rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center justify-center max-w-xl mx-auto my-6 shadow-xs">
-      <div className="w-16 h-16 rounded-2xl bg-[#eef2ff] border border-[#e0e7ff] flex items-center justify-center text-[#4f46e5] mb-4 shadow-xs">
-        <Icon className="w-8 h-8 stroke-[1.75]" />
+    <div className="bg-white border border-[#e5e2db] rounded-lg p-8 sm:p-12 text-center flex flex-col items-center justify-center max-w-lg mx-auto my-6 shadow-2xs">
+      <div className="w-12 h-12 rounded bg-[#f4f2ee] border border-[#e5e2db] flex items-center justify-center text-[#1d3b64] mb-3.5">
+        <Icon className="w-5 h-5 stroke-[1.75]" />
       </div>
 
-      <h3 className="text-lg font-bold text-[#0f172a] mb-1.5 tracking-tight">
+      <h3 className="font-editorial text-base sm:text-lg font-semibold text-[#18181b] mb-1.5 tracking-tight">
         {title || current.defaultTitle}
       </h3>
 
-      <p className="text-sm text-[#475569] max-w-md mb-6 leading-relaxed">
+      <p className="text-xs sm:text-sm text-[#71717a] max-w-sm mb-5 leading-relaxed">
         {description || current.defaultDesc}
       </p>
 
       {onAction && (
         <Button
           onClick={onAction}
-          variant="primary"
-          size="md"
-          leftIcon={<RotateCcw className="w-4 h-4" />}
+          variant="secondary"
+          size="sm"
+          leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
         >
           {actionText || current.defaultAction}
         </Button>

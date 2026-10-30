@@ -86,3 +86,23 @@ export interface ReportReason {
   label: string;
   description: string;
 }
+
+export interface ResourceCommentAuthor {
+  id: string;
+  name: string;
+  avatar?: string;
+  college?: string;
+  branch?: string;
+  semester?: string;
+  isVerified?: boolean;
+}
+
+export interface ResourceComment {
+  id: string;
+  resourceId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  author: ResourceCommentAuthor;
+}

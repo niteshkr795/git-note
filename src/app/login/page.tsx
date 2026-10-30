@@ -34,7 +34,7 @@ function LoginForm() {
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!email.trim()) {
-      errs.email = 'College email address is required.';
+      errs.email = 'Student or institutional email is required.';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       errs.email = 'Please enter a valid email address.';
     }
@@ -62,16 +62,16 @@ function LoginForm() {
       if (error) {
         let message = error.message;
         if (message === 'Failed to fetch' || message.toLowerCase().includes('failed to fetch')) {
-          message = 'Unable to reach Supabase (Failed to fetch). Please check if an ad-blocker or Brave Shields is blocking requests to supabase.co, or restart the dev server.';
+          message = 'Unable to connect to Supabase. Check network connection or ad-blockers.';
         } else if (message.toLowerCase().includes('invalid login credentials')) {
-          message = 'Invalid email or password. Please verify your credentials or register a new account.';
+          message = 'Invalid email or password. Please check your credentials or register an account.';
         } else if (message.toLowerCase().includes('email not confirmed')) {
-          message = 'Please confirm your email address. Check your inbox for the Supabase confirmation link.';
+          message = 'Please confirm your email address via the confirmation link sent to your inbox.';
         }
         setErrors({ form: message });
         addToast('error', 'Authentication Failed', message);
       } else {
-        addToast('success', 'Welcome Back!', 'Signed in successfully to GitNote.');
+        addToast('success', 'Signed In', 'Welcome back to GitNote.');
         router.push(redirectTo || '/profile');
         router.refresh();
       }
@@ -85,52 +85,50 @@ function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md space-y-8">
-      {/* Header */}
+    <div className="w-full max-w-sm space-y-6">
+      {/* Brand Header */}
       <div className="text-center">
-        <Link href="/" className="inline-flex items-center gap-3 mb-4 group">
-          <div className="w-12 h-12 rounded-2xl bg-white p-1 shadow-md border border-slate-200/90 group-hover:scale-105 transition-transform flex items-center justify-center overflow-hidden">
+        <Link href="/" className="inline-flex items-center gap-2 mb-3 group">
+          <div className="w-8 h-8 rounded border border-[#e5e2db] bg-white p-1 flex items-center justify-center">
             <Image
               src="/logo.png"
               alt="GitNote Logo"
-              width={48}
-              height={48}
+              width={28}
+              height={28}
               className="w-full h-full object-contain"
               priority
             />
           </div>
-          <span className="font-extrabold text-2xl tracking-tight text-[#0f172a] font-mono">
-            Git<span className="text-[#4f46e5]">Note</span>
+          <span className="font-editorial text-xl font-semibold tracking-tight text-[#18181b]">
+            Git<span className="text-[#1d3b64]">Note</span>
           </span>
         </Link>
 
-        <h2 className="text-2xl font-bold text-[#0f172a] tracking-tight">
-          Sign in to Academic Hub
+        <h2 className="font-editorial text-xl font-semibold text-[#18181b] tracking-tight">
+          Sign In to Academic Portal
         </h2>
-        <p className="text-xs text-[#475569] mt-1.5">
-          Access your saved question papers, lecture notes, and study bookmarks
+        <p className="text-xs text-[#71717a] mt-1">
+          Access your contributed course notes and saved repository papers
         </p>
       </div>
 
       {/* Form Container */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-8 shadow-xs space-y-6">
-
-        {/* Global Form Error Banner */}
+      <div className="bg-white rounded-md border border-[#e5e2db] p-6 shadow-2xs space-y-4">
         {errors.form && (
-          <div className="bg-rose-50 border border-rose-200 rounded-xl p-3.5 flex items-start gap-2.5 text-xs text-rose-700 animate-in fade-in duration-200">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+          <div className="bg-[#fef2f2] border border-[#fecaca] rounded p-3 flex items-start gap-2 text-xs text-[#991b1b]">
+            <AlertCircle className="w-3.5 h-3.5 text-[#991b1b] shrink-0 mt-0.5" />
             <p className="leading-relaxed">{errors.form}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           {/* Email Field */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              College Email
+            <label className="block text-[11px] font-mono uppercase tracking-wider text-[#71717a] mb-1">
+              Email Address
             </label>
             <div className="relative">
-              <div className="absolute left-3.5 top-3.5 text-slate-400">
+              <div className="absolute left-3 top-2.5 text-[#a1a1aa]">
                 <Mail className="w-4 h-4" />
               </div>
               <input
@@ -148,16 +146,16 @@ function LoginForm() {
                   }
                 }}
                 placeholder="student@srmcem.ac.in"
-                className={`w-full pl-10 pr-3 py-3 text-xs sm:text-sm bg-white border rounded-xl outline-none transition-all ${
+                className={`w-full pl-9 pr-3 py-2 text-xs bg-white border rounded-md outline-none transition-colors ${
                   errors.email
-                    ? 'border-rose-400 focus:ring-2 focus:ring-rose-100'
-                    : 'border-[#cbd5e1] focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100'
+                    ? 'border-[#fecaca] focus:border-[#991b1b]'
+                    : 'border-[#e5e2db] focus:border-[#1d3b64] focus:ring-1 focus:ring-[#1d3b64]'
                 }`}
               />
             </div>
             {errors.email && (
-              <p className="text-xs text-rose-600 font-medium mt-1 flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <p className="text-xs text-[#991b1b] mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3 shrink-0" />
                 {errors.email}
               </p>
             )}
@@ -165,23 +163,20 @@ function LoginForm() {
 
           {/* Password Field */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-[#71717a]">
                 Password
               </label>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  addToast('info', 'Password Reset', 'Password recovery link can be dispatched to your student email.');
-                }}
-                className="text-[11px] font-semibold text-[#4f46e5] hover:text-[#4338ca]"
+              <button
+                type="button"
+                onClick={() => addToast('info', 'Password Reset', 'Contact institutional IT support or use reset email.')}
+                className="text-[11px] text-[#1d3b64] hover:underline"
               >
-                Forgot password?
-              </a>
+                Forgot?
+              </button>
             </div>
             <div className="relative">
-              <div className="absolute left-3.5 top-3.5 text-slate-400">
+              <div className="absolute left-3 top-2.5 text-[#a1a1aa]">
                 <Lock className="w-4 h-4" />
               </div>
               <input
@@ -199,72 +194,71 @@ function LoginForm() {
                   }
                 }}
                 placeholder="••••••••"
-                className={`w-full pl-10 pr-10 py-3 text-xs sm:text-sm bg-white border rounded-xl outline-none transition-all ${
+                className={`w-full pl-9 pr-8 py-2 text-xs bg-white border rounded-md outline-none transition-colors ${
                   errors.password
-                    ? 'border-rose-400 focus:ring-2 focus:ring-rose-100'
-                    : 'border-[#cbd5e1] focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100'
+                    ? 'border-[#fecaca] focus:border-[#991b1b]'
+                    : 'border-[#e5e2db] focus:border-[#1d3b64] focus:ring-1 focus:ring-[#1d3b64]'
                 }`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                className="absolute right-2.5 top-2.5 text-[#a1a1aa] hover:text-[#18181b] cursor-pointer"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
               </button>
             </div>
             {errors.password && (
-              <p className="text-xs text-rose-600 font-medium mt-1 flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <p className="text-xs text-[#991b1b] mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3 shrink-0" />
                 {errors.password}
               </p>
             )}
           </div>
 
-          {/* Remember Me Checkbox */}
-          <div className="flex items-center justify-between pt-1">
-            <label className="flex items-center gap-2 cursor-pointer text-xs text-[#475569]">
+          {/* Remember Me */}
+          <div className="flex items-center justify-between pt-0.5">
+            <label className="flex items-center gap-2 cursor-pointer text-xs text-[#52525b]">
               <input
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded border-[#cbd5e1] text-[#4f46e5] focus:ring-[#4f46e5]"
+                className="w-3.5 h-3.5 rounded border-[#e5e2db] text-[#1d3b64] focus:ring-[#1d3b64]"
               />
-              <span>Remember this computer</span>
+              <span>Remember session</span>
             </label>
           </div>
 
-          {/* Submit Button */}
+          {/* Submit */}
           <Button
             type="submit"
             variant="primary"
-            size="lg"
+            size="md"
             isLoading={isLoading}
-            className="w-full mt-2"
-            rightIcon={<ArrowRight className="w-4 h-4" />}
+            className="w-full mt-1"
+            rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
           >
             Sign In
           </Button>
         </form>
 
-        {/* Institutional Trust Note */}
-        <div className="pt-2 text-center">
-          <p className="text-xs text-slate-400 flex items-center justify-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#10b981]" />
-            Secure Supabase Authentication
+        <div className="pt-2 text-center border-t border-[#eeece6]">
+          <p className="text-[11px] font-mono text-[#71717a] flex items-center justify-center gap-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#166534]" />
+            Encrypted Supabase Auth
           </p>
         </div>
       </div>
 
-      {/* Footer Link to Signup */}
-      <p className="text-center text-xs text-[#475569]">
-        Don&apos;t have a student account yet?{' '}
+      {/* Footer link */}
+      <p className="text-center text-xs text-[#71717a]">
+        New to the repository?{' '}
         <Link
           href="/signup"
-          className="font-bold text-[#4f46e5] hover:text-[#4338ca] hover:underline"
+          className="font-medium text-[#1d3b64] hover:underline"
         >
-          Create an Account
+          Create Student Account
         </Link>
       </p>
     </div>
@@ -273,8 +267,8 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 bg-[#faf8ff]">
-      <Suspense fallback={<div className="text-center text-xs text-slate-400">Loading sign in...</div>}>
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-10 bg-[#fbfaf8]">
+      <Suspense fallback={<div className="text-center text-xs text-[#71717a]">Loading sign in...</div>}>
         <LoginForm />
       </Suspense>
     </div>

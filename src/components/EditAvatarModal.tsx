@@ -410,44 +410,44 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
     >
       <div className="space-y-6">
         {/* Live Preview Bar */}
-        <div className="bg-[#faf8ff] border border-[#e2e8f0] rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+        <div className="bg-[#fbfaf8] border border-[#e5e2db] rounded-md p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
             <div className="relative shrink-0">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#4f46e5] via-[#7c3aed] to-[#38bdf8] p-1 flex items-center justify-center shadow-md ring-4 ring-indigo-100 overflow-hidden">
+              <div className="w-16 h-16 rounded-md bg-[#1d3b64] p-1 flex items-center justify-center border border-[#152b49] overflow-hidden">
                 {selectedAvatar ? (
                   <img
                     src={selectedAvatar}
                     alt={displayName}
-                    className="w-full h-full object-contain rounded-xl"
+                    className="w-full h-full object-contain rounded"
                     onError={() => {
                       setUrlPreviewError('Failed to load image from this URL.');
                     }}
                   />
                 ) : (
-                  <span className="text-2xl font-black text-white">
+                  <span className="text-xl font-bold font-mono text-white">
                     {(displayName || 'S').charAt(0).toUpperCase()}
                   </span>
                 )}
               </div>
               <div
-                className="absolute -bottom-1 -right-1 bg-[#10b981] text-white p-1 rounded-lg shadow-sm"
+                className="absolute -bottom-1 -right-1 bg-[#166534] text-white p-0.5 rounded shadow-2xs"
                 title="Verified Student"
               >
-                <ShieldCheck className="w-4 h-4" />
+                <ShieldCheck className="w-3.5 h-3.5" />
               </div>
             </div>
 
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-[#0f172a]">{displayName}</span>
+                <span className="text-xs sm:text-sm font-semibold text-[#18181b]">{displayName}</span>
                 {isChanged && (
-                  <span className="text-[10px] font-semibold bg-indigo-50 text-indigo-600 border border-indigo-200 px-2 py-0.5 rounded-full">
-                    Previewing New Avatar
+                  <span className="text-[10px] font-mono bg-[#eef3f8] text-[#1d3b64] border border-[#cfdbe8] px-1.5 py-0.5 rounded">
+                    Selected
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {selectedAvatar ? 'Cartoon avatar formatted for your GitNote profile' : 'Default initials avatar'}
+              <p className="text-xs text-[#71717a] mt-0.5">
+                {selectedAvatar ? 'Selected student avatar' : 'Default initials avatar'}
               </p>
             </div>
           </div>
@@ -456,66 +456,66 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
             <button
               type="button"
               onClick={handleRemoveAvatar}
-              className="text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/80 border border-rose-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+              className="text-xs font-medium text-[#991b1b] hover:bg-[#fef2f2] border border-[#fecaca] px-2.5 py-1 rounded flex items-center gap-1 transition-colors cursor-pointer shrink-0"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Reset Avatar</span>
+              <span>Reset</span>
             </button>
           )}
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-[#e2e8f0] pb-2">
+        <div className="flex flex-wrap items-center gap-1.5 border-b border-[#eeece6] pb-2">
           <button
             type="button"
             onClick={() => setActiveTab('presets')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors cursor-pointer ${
               activeTab === 'presets'
-                ? 'bg-[#4f46e5] text-white shadow-xs'
-                : 'text-slate-600 hover:text-[#0f172a] hover:bg-slate-100'
+                ? 'bg-[#1d3b64] text-white border border-[#152b49]'
+                : 'text-[#52525b] hover:text-[#18181b] hover:bg-[#f4f2ee]'
             }`}
           >
-            <Sparkles className="w-4 h-4" />
-            <span>Cartoon Avatars</span>
+            <Smile className="w-3.5 h-3.5" />
+            <span>Curated Presets</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('generator')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors cursor-pointer ${
               activeTab === 'generator'
-                ? 'bg-[#4f46e5] text-white shadow-xs'
-                : 'text-slate-600 hover:text-[#0f172a] hover:bg-slate-100'
+                ? 'bg-[#1d3b64] text-white border border-[#152b49]'
+                : 'text-[#52525b] hover:text-[#18181b] hover:bg-[#f4f2ee]'
             }`}
           >
-            <Shuffle className="w-4 h-4" />
-            <span>Generate Cartoon</span>
+            <Shuffle className="w-3.5 h-3.5" />
+            <span>Generate Avatar</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('upload')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors cursor-pointer ${
               activeTab === 'upload'
-                ? 'bg-[#4f46e5] text-white shadow-xs'
-                : 'text-slate-600 hover:text-[#0f172a] hover:bg-slate-100'
+                ? 'bg-[#1d3b64] text-white border border-[#152b49]'
+                : 'text-[#52525b] hover:text-[#18181b] hover:bg-[#f4f2ee]'
             }`}
           >
-            <UploadCloud className="w-4 h-4" />
-            <span>Upload Image</span>
+            <UploadCloud className="w-3.5 h-3.5" />
+            <span>Upload Photo</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('url')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors cursor-pointer ${
               activeTab === 'url'
-                ? 'bg-[#4f46e5] text-white shadow-xs'
-                : 'text-slate-600 hover:text-[#0f172a] hover:bg-slate-100'
+                ? 'bg-[#1d3b64] text-white border border-[#152b49]'
+                : 'text-[#52525b] hover:text-[#18181b] hover:bg-[#f4f2ee]'
             }`}
           >
-            <LinkIcon className="w-4 h-4" />
-            <span>Image URL</span>
+            <LinkIcon className="w-3.5 h-3.5" />
+            <span>Custom URL</span>
           </button>
         </div>
 
@@ -524,15 +524,15 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
           <div className="space-y-4">
             {/* Category Filter Pills */}
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-semibold text-slate-500">Filter Cartoon Category:</span>
-              <div className="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl">
+              <span className="text-xs font-mono uppercase tracking-wider text-[var(--color-muted)]">Category:</span>
+              <div className="flex items-center gap-1 bg-[var(--color-paper-accent)] p-0.5 rounded border border-[var(--color-paper-border)]">
                 <button
                   type="button"
                   onClick={() => setPresetFilter('all')}
-                  className={`text-xs px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                  className={`text-xs px-2.5 py-1 rounded font-medium transition-all cursor-pointer ${
                     presetFilter === 'all'
-                      ? 'bg-white text-[#4f46e5] shadow-2xs font-semibold'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-white text-[var(--color-foreground)] shadow-xs'
+                      : 'text-[var(--color-muted)] hover:text-[var(--color-foreground)]'
                   }`}
                 >
                   All ({PRESET_AVATARS.length})
@@ -540,35 +540,35 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setPresetFilter('boys')}
-                  className={`text-xs px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                  className={`text-xs px-2.5 py-1 rounded font-medium transition-all cursor-pointer ${
                     presetFilter === 'boys'
-                      ? 'bg-white text-indigo-600 shadow-2xs font-semibold'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-white text-[var(--color-foreground)] shadow-xs'
+                      : 'text-[var(--color-muted)] hover:text-[var(--color-foreground)]'
                   }`}
                 >
-                  👦 Boys (8)
+                  Boys (8)
                 </button>
                 <button
                   type="button"
                   onClick={() => setPresetFilter('girls')}
-                  className={`text-xs px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                  className={`text-xs px-2.5 py-1 rounded font-medium transition-all cursor-pointer ${
                     presetFilter === 'girls'
-                      ? 'bg-white text-pink-600 shadow-2xs font-semibold'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-white text-[var(--color-foreground)] shadow-xs'
+                      : 'text-[var(--color-muted)] hover:text-[var(--color-foreground)]'
                   }`}
                 >
-                  👧 Girls (8)
+                  Girls (8)
                 </button>
                 <button
                   type="button"
                   onClick={() => setPresetFilter('men')}
-                  className={`text-xs px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                  className={`text-xs px-2.5 py-1 rounded font-medium transition-all cursor-pointer ${
                     presetFilter === 'men'
-                      ? 'bg-white text-blue-700 shadow-2xs font-semibold'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-white text-[var(--color-foreground)] shadow-xs'
+                      : 'text-[var(--color-muted)] hover:text-[var(--color-foreground)]'
                   }`}
                 >
-                  👨 Men (8)
+                  Mentors (8)
                 </button>
               </div>
             </div>
@@ -577,47 +577,39 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-72 overflow-y-auto p-1 pr-2">
               {filteredPresets.map((preset) => {
                 const isSelected = selectedAvatar === preset.url;
-                const categoryColor =
-                  preset.category === 'girls'
-                    ? 'bg-pink-50 text-pink-700 border-pink-200'
-                    : preset.category === 'men'
-                    ? 'bg-blue-50 text-blue-700 border-blue-200'
-                    : 'bg-indigo-50 text-indigo-700 border-indigo-200';
 
                 return (
                   <button
                     key={preset.id}
                     type="button"
                     onClick={() => setSelectedAvatar(preset.url)}
-                    className={`group relative rounded-2xl overflow-hidden border-2 p-2 flex flex-col items-center gap-1.5 transition-all text-left cursor-pointer ${
+                    className={`group relative rounded-md overflow-hidden border p-2 flex flex-col items-center gap-1.5 transition-all text-left cursor-pointer ${
                       isSelected
-                        ? 'border-[#4f46e5] bg-indigo-50/70 shadow-sm ring-2 ring-indigo-200'
-                        : 'border-[#e2e8f0] hover:border-[#cbd5e1] hover:bg-slate-50'
+                        ? 'border-[var(--color-accent)] bg-[var(--color-paper-accent)] ring-1 ring-[var(--color-accent)]'
+                        : 'border-[var(--color-paper-border)] hover:border-[var(--color-accent)] bg-white'
                     }`}
                   >
-                    <div className="w-18 h-18 rounded-xl bg-gradient-to-b from-slate-50 to-indigo-50/50 p-1 overflow-hidden relative shadow-2xs flex items-center justify-center">
+                    <div className="w-16 h-16 rounded bg-[var(--color-paper)] p-1 overflow-hidden relative border border-[var(--color-paper-border)] flex items-center justify-center">
                       <img
                         src={preset.url}
                         alt={preset.label}
-                        className="w-full h-full object-contain transition-transform group-hover:scale-110"
+                        className="w-full h-full object-contain transition-transform group-hover:scale-105"
                         loading="lazy"
                       />
                       {isSelected && (
-                        <div className="absolute inset-0 bg-[#4f46e5]/40 backdrop-blur-[0.5px] flex items-center justify-center">
-                          <div className="bg-white text-[#4f46e5] rounded-full p-1 shadow-sm">
-                            <Check className="w-4 h-4 stroke-[3]" />
+                        <div className="absolute inset-0 bg-[var(--color-accent)]/20 flex items-center justify-center">
+                          <div className="bg-[var(--color-accent)] text-white rounded-full p-0.5 shadow-sm">
+                            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                           </div>
                         </div>
                       )}
                     </div>
 
                     <div className="w-full text-center">
-                      <span className="text-[11px] font-semibold text-slate-800 block truncate">
+                      <span className="text-[11px] font-medium text-[var(--color-foreground)] block truncate">
                         {preset.label}
                       </span>
-                      <span
-                        className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border capitalize inline-block mt-0.5 ${categoryColor}`}
-                      >
+                      <span className="text-[10px] font-mono text-[var(--color-muted)] uppercase">
                         {preset.category}
                       </span>
                     </div>
@@ -630,52 +622,52 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
 
         {/* Tab 2: Cartoon Generator */}
         {activeTab === 'generator' && (
-          <div className="space-y-4 bg-slate-50 border border-slate-200 rounded-2xl p-5">
+          <div className="space-y-4 bg-[var(--color-paper)] border border-[var(--color-paper-border)] rounded-md p-4">
             <div>
-              <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Generate Custom Cartoon Avatar
+              <p className="text-xs font-mono uppercase tracking-wider text-[var(--color-muted)]">
+                Dynamic Seed Generator
               </p>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Create a distinct cartoon avatar for boys, girls, or men using any character seed name.
+              <p className="text-xs text-[var(--color-foreground)]/80 mt-0.5">
+                Generate an avatar using any character seed name.
               </p>
             </div>
 
             {/* Choose Gender/Style */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700">Choose Character Type:</label>
+              <label className="text-xs font-medium text-[var(--color-foreground)]">Character Profile:</label>
               <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setGenCategory('boys')}
-                  className={`p-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  className={`p-2 rounded text-xs font-medium border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                     genCategory === 'boys'
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]'
+                      : 'bg-white text-[var(--color-foreground)] border-[var(--color-paper-border)] hover:bg-[var(--color-paper-accent)]'
                   }`}
                 >
-                  <span>👦 Boy Student</span>
+                  <span>Student Boy</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setGenCategory('girls')}
-                  className={`p-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  className={`p-2 rounded text-xs font-medium border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                     genCategory === 'girls'
-                      ? 'bg-pink-600 text-white border-pink-600 shadow-2xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]'
+                      : 'bg-white text-[var(--color-foreground)] border-[var(--color-paper-border)] hover:bg-[var(--color-paper-accent)]'
                   }`}
                 >
-                  <span>👧 Girl Student</span>
+                  <span>Student Girl</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setGenCategory('men')}
-                  className={`p-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  className={`p-2 rounded text-xs font-medium border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                     genCategory === 'men'
-                      ? 'bg-blue-700 text-white border-blue-700 shadow-2xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]'
+                      : 'bg-white text-[var(--color-foreground)] border-[var(--color-paper-border)] hover:bg-[var(--color-paper-accent)]'
                   }`}
                 >
-                  <span>👨 Adult Man / Mentor</span>
+                  <span>Faculty / Mentor</span>
                 </button>
               </div>
             </div>

@@ -10,37 +10,37 @@ export const ToastContainer: React.FC = () => {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none">
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
       {toasts.map((toast) => {
         const iconMap = {
-          success: <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />,
-          error: <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />,
-          warning: <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />,
-          info: <Info className="w-5 h-5 text-blue-500 shrink-0" />,
+          success: <CheckCircle2 className="w-4 h-4 text-[#166534] shrink-0 mt-0.5" />,
+          error: <AlertCircle className="w-4 h-4 text-[#991b1b] shrink-0 mt-0.5" />,
+          warning: <AlertTriangle className="w-4 h-4 text-[#b45309] shrink-0 mt-0.5" />,
+          info: <Info className="w-4 h-4 text-[#1d3b64] shrink-0 mt-0.5" />,
         };
 
         const borderMap = {
-          success: 'border-emerald-200 bg-white/95',
-          error: 'border-rose-200 bg-white/95',
-          warning: 'border-amber-200 bg-white/95',
-          info: 'border-blue-200 bg-white/95',
+          success: 'border-[#bbf7d0] bg-white',
+          error: 'border-[#fecaca] bg-white',
+          warning: 'border-[#fde68a] bg-white',
+          info: 'border-[#cfdbe8] bg-white',
         };
 
         return (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-start gap-3 p-3.5 rounded-xl border shadow-lg backdrop-blur-md transition-all duration-300 animate-in slide-in-from-bottom-2 ${borderMap[toast.type]}`}
+            className={`pointer-events-auto flex items-start gap-2.5 p-3 rounded-md border shadow-md transition-all ${borderMap[toast.type]}`}
           >
             {iconMap[toast.type]}
             <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-semibold text-slate-900">{toast.title}</h4>
-              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">{toast.message}</p>
+              <h4 className="text-xs font-semibold text-[#18181b]">{toast.title}</h4>
+              <p className="text-xs text-[#52525b] mt-0.5 leading-relaxed">{toast.message}</p>
             </div>
             <button
               onClick={() => removeToast(toast.id)}
-              className="text-slate-400 hover:text-slate-600 p-0.5 rounded-lg transition-colors cursor-pointer"
+              className="text-[#71717a] hover:text-[#18181b] p-0.5 rounded transition-colors cursor-pointer"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         );

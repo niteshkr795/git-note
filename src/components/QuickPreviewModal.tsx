@@ -39,7 +39,6 @@ export const QuickPreviewModal: React.FC<QuickPreviewModalProps> = ({
   const [isLoadingUrl, setIsLoadingUrl] = useState(true);
   const [urlError, setUrlError] = useState<string | null>(null);
 
-  // Load actual file URL from Supabase Storage when opened
   useEffect(() => {
     if (!isOpen || !resource) {
       setFileUrl(null);
@@ -62,7 +61,7 @@ export const QuickPreviewModal: React.FC<QuickPreviewModalProps> = ({
         setFileUrl(res.url);
         cleanupFn = res.cleanUp;
       } else {
-        setUrlError(res.error || 'Failed to load document file.');
+        setUrlError(res.error || 'Failed to resolve document file link.');
       }
       setIsLoadingUrl(false);
     }
@@ -87,61 +86,59 @@ export const QuickPreviewModal: React.FC<QuickPreviewModalProps> = ({
   const handleShare = () => {
     if (typeof window !== 'undefined') {
       navigator.clipboard?.writeText(window.location.origin + `/resources/${resource.id}`);
-      addToast('info', 'Link Copied', 'Resource link copied to your clipboard!');
+      addToast('info', 'Link Copied', 'Resource citation link copied to clipboard.');
     }
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} maxWidth="5xl">
-      <div className="space-y-4 -m-2">
+      <div className="space-y-4">
         {/* Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#f1f5f9]">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#eeece6]">
           <div className="max-w-xl">
-            <div className="flex flex-wrap items-center gap-2 mb-1.5">
-              <Badge resourceType={resource.resourceType}>
+            <div className="flex flex-wrap items-center gap-1.5 mb-1">
+              <Badge resourceType={resource.resourceType} size="sm">
                 {resource.resourceType}
               </Badge>
-              <span className="text-xs font-semibold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+              <span className="text-[11px] font-mono text-[#52525b] bg-[#f4f2ee] px-2 py-0.5 rounded border border-[#e5e2db]">
                 {resource.semester}
               </span>
-              <span className="text-xs text-[#4338ca] bg-[#eef2ff] px-2.5 py-0.5 rounded-full font-semibold border border-[#e0e7ff] truncate max-w-[200px]">
+              <span className="text-xs text-[#52525b] truncate max-w-[200px]">
                 {resource.subject}
               </span>
             </div>
-            <h2 className="text-base sm:text-lg font-bold text-[#0f172a] line-clamp-1 tracking-tight">
+            <h2 className="font-editorial text-base sm:text-lg font-semibold text-[#18181b] line-clamp-1 tracking-tight">
               {resource.title}
             </h2>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => toggleBookmark(resource.id)}
-              className={`p-2 rounded-xl transition-all cursor-pointer ${
+              className={`p-1.5 rounded transition-colors cursor-pointer border ${
                 bookmarked
-                  ? 'bg-[#fffbeb] text-[#b45309] border border-[#fde68a]'
-                  : 'text-slate-500 hover:bg-[#f8fafc] border border-[#e2e8f0]'
+                  ? 'bg-[#fef9ee] text-[#b45309] border-[#fde68a]'
+                  : 'text-[#71717a] hover:bg-[#f4f2ee] border-[#e5e2db]'
               }`}
-              title={bookmarked ? 'Saved to Bookmarks' : 'Bookmark for Later'}
+              title={bookmarked ? 'Saved to Bookmarks' : 'Bookmark'}
             >
-              <Bookmark
-                className={`w-4 h-4 ${bookmarked ? 'fill-[#f59e0b] text-[#f59e0b]' : ''}`}
-              />
+              <Bookmark className={`w-3.5 h-3.5 ${bookmarked ? 'fill-[#b45309] text-[#b45309]' : ''}`} />
             </button>
 
             <button
               type="button"
               onClick={handleShare}
-              className="p-2 rounded-xl text-slate-500 hover:bg-[#f8fafc] border border-[#e2e8f0] transition-colors cursor-pointer"
-              title="Copy share link"
+              className="p-1.5 rounded text-[#71717a] hover:bg-[#f4f2ee] border border-[#e5e2db] transition-colors cursor-pointer"
+              title="Copy citation link"
             >
-              <Share2 className="w-4 h-4" />
+              <Share2 className="w-3.5 h-3.5" />
             </button>
 
             <Button
               variant="primary"
               size="sm"
-              leftIcon={<Download className="w-4 h-4" />}
+              leftIcon={<Download className="w-3.5 h-3.5" />}
               onClick={() => mockDownload(resource)}
             >
               Download ({resource.fileSize})
@@ -151,42 +148,39 @@ export const QuickPreviewModal: React.FC<QuickPreviewModalProps> = ({
               <button
                 type="button"
                 onClick={() => setIsDeleteModalOpen(true)}
-                className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition-colors cursor-pointer"
-                title="Delete this document"
-                aria-label="Delete this document"
+                className="p-1.5 rounded text-[#991b1b] hover:bg-[#fef2f2] border border-[#fecaca] transition-colors cursor-pointer"
+                title="Delete document"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
         </div>
 
-        {/* Real PDF / Document Viewer */}
-        <div className="min-h-[440px] flex flex-col justify-center">
+        {/* PDF Viewer */}
+        <div className="min-h-[420px] flex flex-col justify-center">
           {isLoadingUrl ? (
-            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-12 flex flex-col items-center justify-center text-center text-slate-400 min-h-[440px] space-y-3">
-              <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
-              <p className="text-sm font-medium">Resolving document from storage...</p>
+            <div className="bg-[#18181b] rounded-md border border-[#27272a] p-12 flex flex-col items-center justify-center text-center text-[#a1a1aa] min-h-[420px] space-y-2.5">
+              <Loader2 className="w-6 h-6 text-[#1d3b64] animate-spin" />
+              <p className="text-xs font-mono">Resolving document from repository...</p>
             </div>
           ) : urlError ? (
-            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-8 sm:p-12 text-center text-slate-300 min-h-[440px] flex flex-col items-center justify-center space-y-4">
-              <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6" />
+            <div className="bg-[#18181b] border border-[#3f3f46] rounded-md p-8 text-center text-[#d4d4d8] min-h-[420px] flex flex-col items-center justify-center space-y-3">
+              <div className="w-10 h-10 rounded bg-[#fef2f2]/10 border border-[#fecaca]/20 text-[#f87171] flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5" />
               </div>
-              <div className="max-w-md">
-                <h3 className="text-base font-bold text-white">Preview Currently Unavailable</h3>
-                <p className="text-xs text-slate-400 mt-1">{urlError}</p>
+              <div className="max-w-sm">
+                <h3 className="text-sm font-medium text-white">Preview Currently Unavailable</h3>
+                <p className="text-xs text-[#a1a1aa] mt-1">{urlError}</p>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  leftIcon={<Download className="w-4 h-4" />}
-                  onClick={() => mockDownload(resource)}
-                >
-                  Download {resource.fileFormat} ({resource.fileSize})
-                </Button>
-              </div>
+              <Button
+                variant="primary"
+                size="sm"
+                leftIcon={<Download className="w-3.5 h-3.5" />}
+                onClick={() => mockDownload(resource)}
+              >
+                Download Directly
+              </Button>
             </div>
           ) : (
             <PdfViewer
@@ -200,32 +194,33 @@ export const QuickPreviewModal: React.FC<QuickPreviewModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-2 border-t border-[#f1f5f9] flex items-center justify-between text-xs">
+        <div className="pt-2 border-t border-[#eeece6] flex items-center justify-between text-xs">
           <Link
             href={`/resources/${resource.id}`}
-            className="text-[#4f46e5] hover:text-[#4338ca] font-semibold flex items-center gap-1"
+            className="text-[#1d3b64] hover:underline font-medium flex items-center gap-1"
             onClick={onClose}
           >
-            <span>Open Dedicated Document Page</span>
-            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Open Dedicated Document Record</span>
+            <ExternalLink className="w-3 h-3" />
           </Link>
 
           <Button variant="outline" size="sm" onClick={onClose}>
-            Close Preview
+            Close
           </Button>
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      <DeleteResourceModal
-        resource={resource}
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onDeleted={() => {
-          setIsDeleteModalOpen(false);
-          onClose();
-        }}
-      />
+      {isDeleteModalOpen && (
+        <DeleteResourceModal
+          resource={resource}
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onDeleted={() => {
+            setIsDeleteModalOpen(false);
+            onClose();
+          }}
+        />
+      )}
     </Modal>
   );
 };

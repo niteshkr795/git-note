@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { formatFileSize } from '@/lib/formatters';
 import { normalizeSemester } from '@/data/mockData';
@@ -15,8 +16,10 @@ import {
   Search,
   BookOpen,
   Calendar,
-  Download,
   CheckCircle2,
+  Library,
+  Layers,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface RecentResource {
@@ -40,36 +43,42 @@ interface RecentResource {
 
 const CATEGORIES = [
   {
-    title: 'Notes',
-    description: 'Lecture notes, revision summaries, and unit formulas',
-    href: '/search?type=Notes',
-    icon: FileText,
-    accent: 'text-indigo-600 bg-indigo-50 border-indigo-100',
-  },
-  {
-    title: 'PYQs',
-    description: 'Previous year semester examination question papers',
+    title: 'Previous Year Papers',
+    code: 'PYQs',
+    description: 'Past semester university question papers and answer keys',
     href: '/search?type=PYQs',
     icon: GraduationCap,
-    accent: 'text-amber-600 bg-amber-50 border-amber-100',
+    badge: 'Exam Prep',
   },
   {
-    title: 'Assignments',
-    description: 'Solved tutorial sheets, problem sets, and questions',
-    href: '/search?type=Assignments',
-    icon: ClipboardList,
-    accent: 'text-sky-600 bg-sky-50 border-sky-100',
+    title: 'Lecture Notes',
+    code: 'Notes',
+    description: 'Course lecture summaries, typed unit notes, and derivations',
+    href: '/search?type=Notes',
+    icon: FileText,
+    badge: 'Study Notes',
   },
   {
-    title: 'Lab Manuals',
-    description: 'Practical files, experiment procedures, and code sheets',
+    title: 'Lab Manuals & Practical',
+    code: 'Lab Manuals',
+    description: 'Experiment procedures, viva questions, and verified code',
     href: '/search?type=Lab+Manuals',
     icon: FlaskConical,
-    accent: 'text-emerald-600 bg-emerald-50 border-emerald-100',
+    badge: 'Laboratory',
+  },
+  {
+    title: 'Assignments & Solns',
+    code: 'Assignments',
+    description: 'Tutorial sheets, weekly problem sets, and homework solutions',
+    href: '/search?type=Assignments',
+    icon: ClipboardList,
+    badge: 'Tutorials',
   },
 ];
 
 export default function HomePage() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
   const [recentResources, setRecentResources] = useState<RecentResource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -116,7 +125,7 @@ export default function HomePage() {
           const mapped = resData.map((item: any) => ({
             ...item,
             file_size: formatFileSize(item.file_size_bytes, item.file_size),
-            subject_name: item.subject_name || item.subject || 'General',
+            subject_name: item.subject_name || item.subject || 'General Engineering',
             semester: normalizeSemester(item.semester, 'Semester 1'),
             uploader: Array.isArray(item.uploader) ? item.uploader[0] : item.uploader,
           }));
@@ -132,55 +141,98 @@ export default function HomePage() {
     loadRecent();
   }, []);
 
+  const handleHeroSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push('/search');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50/50 flex flex-col justify-between">
+    <div className="min-h-screen bg-[#fbfaf8] flex flex-col justify-between">
       <div>
-        {/* Hero Section */}
-        <section className="bg-white border-b border-slate-200">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center">
-            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight">
-              Your Academic Resources, <br className="hidden sm:inline" />
-              All in One Place.
+        {/* Editorial Hero Section */}
+        <section className="bg-white border-b border-[#e5e2db] py-14 sm:py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            {/* Academic Archive Marker */}
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#f4f2ee] border border-[#e5e2db] text-[#52525b] text-xs font-mono mb-6">
+              <Library className="w-3.5 h-3.5 text-[#1d3b64]" />
+              <span>Institutional Course Repository</span>
+            </div>
+
+            <h1 className="font-editorial text-3xl sm:text-5xl font-semibold tracking-tight text-[#18181b] leading-[1.15]">
+              Curated Academic Courseware <br className="hidden sm:inline" />
+              and Exam Archives.
             </h1>
 
-            <p className="mt-4 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-              Discover and share notes, previous year question papers, assignments, and study materials
-              with your academic community.
+            <p className="mt-4 text-sm sm:text-base text-[#52525b] max-w-2xl mx-auto leading-relaxed">
+              An open, peer-curated repository of previous year university question papers, verified lecture notes, lab manuals, and tutorial solutions.
             </p>
 
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+            {/* Quick Hero Catalog Search */}
+            <form onSubmit={handleHeroSearch} className="mt-8 max-w-2xl mx-auto">
+              <div className="relative flex items-center shadow-2xs">
+                <div className="absolute left-3.5 pointer-events-none text-[#71717a]">
+                  <Search className="w-4 h-4 text-[#1d3b64]" />
+                </div>
+
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by course name, PYQ year, subject code, or topic..."
+                  className="w-full pl-10 pr-28 sm:pr-32 py-3 bg-[#fbfaf8] hover:bg-white text-[#18181b] placeholder-[#a1a1aa] text-xs sm:text-sm font-normal rounded-md border border-[#e5e2db] focus:bg-white focus:border-[#1d3b64] focus:ring-1 focus:ring-[#1d3b64] outline-none transition-all"
+                />
+
+                <div className="absolute right-1.5 flex items-center">
+                  <button
+                    type="submit"
+                    className="px-3.5 py-1.5 bg-[#1d3b64] hover:bg-[#152b49] text-white text-xs font-medium rounded transition-colors border border-[#152b49] shadow-2xs cursor-pointer"
+                  >
+                    Search Library
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            {/* Action Links */}
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href="/search"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#4f46e5] text-white text-sm font-semibold hover:bg-[#4338ca] transition-colors shadow-xs"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-[#1d3b64] text-white text-xs font-medium hover:bg-[#152b49] transition-colors border border-[#152b49] shadow-2xs"
               >
-                <span>Explore Resources</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>Browse Full Catalog</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
 
               <Link
                 href="/upload"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md border border-[#e5e2db] bg-white text-[#18181b] text-xs font-medium hover:bg-[#f4f2ee] hover:border-[#c9c4b8] transition-colors shadow-2xs"
               >
-                <UploadCloud className="w-4 h-4 text-slate-500" />
-                <span>Upload Resource</span>
+                <UploadCloud className="w-3.5 h-3.5 text-[#52525b]" />
+                <span>Deposit Course Material</span>
               </Link>
             </div>
           </div>
         </section>
 
-        {/* Resource Categories Section */}
-        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <div className="flex items-center justify-between mb-6">
+        {/* Primary Collections */}
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+          <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 mb-6 pb-3 border-b border-[#eeece6]">
             <div>
-              <h2 className="text-lg font-bold text-slate-900 tracking-tight">Resource Categories</h2>
-              <p className="text-xs text-slate-500">Browse materials organized by academic format</p>
+              <h2 className="font-editorial text-lg sm:text-xl font-semibold text-[#18181b] tracking-tight">
+                Academic Library Collections
+              </h2>
+              <p className="text-xs text-[#71717a] mt-0.5">Organized by document format and examination utility</p>
             </div>
             <Link
               href="/search"
-              className="text-xs font-semibold text-[#4f46e5] hover:text-[#4338ca] inline-flex items-center gap-1"
+              className="text-xs font-medium text-[#1d3b64] hover:underline inline-flex items-center gap-1 self-start sm:self-auto"
             >
-              <span>View all in Search</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>Explore all collections</span>
+              <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
@@ -191,24 +243,28 @@ export default function HomePage() {
                 <Link
                   key={cat.title}
                   href={cat.href}
-                  className="group bg-white rounded-xl border border-slate-200 p-5 hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between"
+                  className="group bg-white rounded-md border border-[#e5e2db] p-4 sm:p-5 hover:border-[#c9c4b8] hover:shadow-xs transition-all flex flex-col justify-between shadow-2xs"
                 >
                   <div>
-                    <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center border mb-3 ${cat.accent}`}
-                    >
-                      <Icon className="w-5 h-5" />
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-8 h-8 rounded bg-[#f4f2ee] border border-[#e5e2db] flex items-center justify-center text-[#1d3b64]">
+                        <Icon className="w-4 h-4 stroke-[1.75]" />
+                      </div>
+                      <span className="text-[10px] font-mono text-[#71717a] bg-[#fbfaf8] px-1.5 py-0.5 rounded border border-[#e5e2db]">
+                        {cat.badge}
+                      </span>
                     </div>
-                    <h3 className="font-semibold text-slate-900 text-sm group-hover:text-[#4f46e5] transition-colors">
+
+                    <h3 className="font-editorial text-base font-semibold text-[#18181b] group-hover:text-[#1d3b64] transition-colors">
                       {cat.title}
                     </h3>
-                    <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-[#71717a] mt-1.5 line-clamp-2 leading-relaxed">
                       {cat.description}
                     </p>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-medium text-slate-500 group-hover:text-[#4f46e5]">
-                    <span>Browse {cat.title}</span>
+                  <div className="mt-4 pt-3 border-t border-[#f4f2ee] flex items-center text-xs font-medium text-[#52525b] group-hover:text-[#1d3b64]">
+                    <span>Browse collection</span>
                     <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </Link>
@@ -217,35 +273,37 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Recently Added Resources Section */}
-        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-          <div className="flex items-center justify-between mb-6">
+        {/* Recently Added Section */}
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+          <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 mb-6 pb-3 border-b border-[#eeece6]">
             <div>
-              <h2 className="text-lg font-bold text-slate-900 tracking-tight">Recently Added</h2>
-              <p className="text-xs text-slate-500">Latest academic uploads from verified students</p>
+              <h2 className="font-editorial text-lg sm:text-xl font-semibold text-[#18181b] tracking-tight">
+                Recently Cataloged Documents
+              </h2>
+              <p className="text-xs text-[#71717a] mt-0.5">Latest uploads indexed by university students</p>
             </div>
             {recentResources.length > 0 && (
               <Link
                 href="/search"
-                className="text-xs font-semibold text-[#4f46e5] hover:text-[#4338ca] inline-flex items-center gap-1"
+                className="text-xs font-medium text-[#1d3b64] hover:underline inline-flex items-center gap-1 self-start sm:self-auto"
               >
-                <span>Browse all</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <span>View catalog index</span>
+                <ArrowRight className="w-3 h-3" />
               </Link>
             )}
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="bg-white rounded-xl border border-slate-200 p-5 space-y-3 animate-pulse"
+                  className="bg-white rounded-md border border-[#e5e2db] p-4 space-y-3 animate-pulse"
                 >
-                  <div className="h-4 w-24 bg-slate-100 rounded" />
-                  <div className="h-5 w-3/4 bg-slate-200 rounded" />
-                  <div className="h-3 w-1/2 bg-slate-100 rounded" />
-                  <div className="pt-3 border-t border-slate-100 h-4 w-full bg-slate-50 rounded" />
+                  <div className="h-4 w-20 bg-[#eeece6] rounded" />
+                  <div className="h-5 w-3/4 bg-[#e5e2db] rounded" />
+                  <div className="h-3 w-1/2 bg-[#eeece6] rounded" />
+                  <div className="pt-3 border-t border-[#eeece6] h-4 w-full bg-[#faf9f7] rounded" />
                 </div>
               ))}
             </div>
@@ -255,63 +313,100 @@ export default function HomePage() {
                 <Link
                   key={res.id}
                   href={`/resources/${res.id}`}
-                  className="group bg-white rounded-xl border border-slate-200 p-5 hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between"
+                  className="group bg-white rounded-md border border-[#e5e2db] p-4 sm:p-5 hover:border-[#c9c4b8] hover:shadow-xs transition-all flex flex-col justify-between shadow-2xs"
                 >
                   <div>
                     <div className="flex items-center justify-between text-xs mb-2">
-                      <span className="font-semibold text-xs text-[#4f46e5] bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                      <span className="font-mono text-[11px] font-medium text-[#1d3b64] bg-[#eef3f8] px-2 py-0.5 rounded border border-[#cfdbe8]">
                         {res.resource_type}
                       </span>
-                      <span className="text-slate-400 font-mono text-[11px]">{res.semester}</span>
+                      <span className="text-[#71717a] font-mono text-[11px] bg-[#f4f2ee] px-1.5 py-0.5 rounded border border-[#e5e2db]">
+                        {res.semester}
+                      </span>
                     </div>
 
-                    <h3 className="font-semibold text-slate-900 text-sm leading-snug group-hover:text-[#4f46e5] transition-colors line-clamp-2">
+                    <h3 className="font-editorial text-sm font-semibold text-[#18181b] leading-snug group-hover:text-[#1d3b64] transition-colors line-clamp-2">
                       {res.title}
                     </h3>
 
-                    <p className="text-xs text-slate-500 mt-1 line-clamp-1">
+                    <p className="text-xs text-[#52525b] mt-1.5 line-clamp-1">
                       {res.subject_name} • {res.academic_year}
                     </p>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+                  <div className="mt-4 pt-3 border-t border-[#f4f2ee] flex items-center justify-between text-[11px] text-[#71717a]">
                     <span className="truncate max-w-[160px]">
                       {res.uploader?.full_name || 'Student Contributor'}
                     </span>
-                    <span className="font-medium text-slate-600">{res.file_format || 'PDF'}</span>
+                    <span className="font-mono text-[#52525b]">{res.file_format || 'PDF'}</span>
                   </div>
                 </Link>
               ))}
             </div>
           ) : (
-            /* Simple, clean, natural empty state */
-            <div className="bg-white border border-slate-200 rounded-xl p-8 sm:p-12 text-center max-w-lg mx-auto">
-              <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center mx-auto mb-3">
-                <BookOpen className="w-6 h-6 stroke-[1.75]" />
+            <div className="bg-white border border-[#e5e2db] rounded-md p-8 sm:p-12 text-center max-w-md mx-auto shadow-2xs">
+              <div className="w-10 h-10 rounded bg-[#f4f2ee] border border-[#e5e2db] text-[#1d3b64] flex items-center justify-center mx-auto mb-3">
+                <BookOpen className="w-5 h-5 stroke-[1.75]" />
               </div>
-              <h3 className="text-base font-semibold text-slate-900">No resources uploaded yet</h3>
-              <p className="text-xs text-slate-500 mt-1.5 max-w-sm mx-auto leading-relaxed">
-                Be the first to share lecture notes, previous question papers, or lab manuals with your
-                classmates, or search existing course materials.
+              <h3 className="font-editorial text-base font-semibold text-[#18181b]">No Documents Cataloged Yet</h3>
+              <p className="text-xs text-[#71717a] mt-1.5 leading-relaxed">
+                Be the first to deposit lecture notes, previous question papers, or practical files for your courses.
               </p>
-              <div className="mt-5 flex items-center justify-center gap-3">
+              <div className="mt-4 flex items-center justify-center gap-2">
                 <Link
                   href="/upload"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#4f46e5] text-white text-xs font-semibold hover:bg-[#4338ca] transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#1d3b64] text-white text-xs font-medium hover:bg-[#152b49] transition-colors"
                 >
                   <UploadCloud className="w-3.5 h-3.5" />
-                  <span>Upload Resource</span>
-                </Link>
-                <Link
-                  href="/search"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors"
-                >
-                  <Search className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Explore Search</span>
+                  <span>Deposit Material</span>
                 </Link>
               </div>
             </div>
           )}
+        </section>
+
+        {/* Archival Quality Standards / Core Values */}
+        <section className="bg-white border-y border-[#e5e2db] py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#1d3b64]">
+                <ShieldCheck className="w-4 h-4" />
+                <span>Syllabus Verification</span>
+              </div>
+              <h4 className="font-editorial font-semibold text-sm text-[#18181b]">
+                Accredited Course Alignment
+              </h4>
+              <p className="text-xs text-[#71717a] leading-relaxed">
+                Materials are classified by university syllabus, academic year, and course code to ensure immediate exam relevance.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#1d3b64]">
+                <Layers className="w-4 h-4" />
+                <span>Structured Indexing</span>
+              </div>
+              <h4 className="font-editorial font-semibold text-sm text-[#18181b]">
+                Semester-by-Semester Taxonomy
+              </h4>
+              <p className="text-xs text-[#71717a] leading-relaxed">
+                Easily filter between PYQs, revision summaries, and lab files without navigating through unstructured cloud drives.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#1d3b64]">
+                <Library className="w-4 h-4" />
+                <span>Open Student Access</span>
+              </div>
+              <h4 className="font-editorial font-semibold text-sm text-[#18181b]">
+                Zero Paywalls or Barriers
+              </h4>
+              <p className="text-xs text-[#71717a] leading-relaxed">
+                Built by students, for students. Completely free access to read in-browser or download for offline exam prep.
+              </p>
+            </div>
+          </div>
         </section>
       </div>
     </div>

@@ -56,42 +56,42 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleReset} title="Report Academic Resource" maxWidth="lg">
+    <Modal isOpen={isOpen} onClose={handleReset} title="Report Academic Document" maxWidth="lg">
       {isSubmitted ? (
-        <div className="text-center py-6">
-          <div className="w-14 h-14 rounded-full bg-[#ecfdf5] text-[#047857] flex items-center justify-center mx-auto mb-3 border border-[#a7f3d0]">
-            <CheckCircle2 className="w-8 h-8" />
+        <div className="text-center py-5">
+          <div className="w-12 h-12 rounded bg-[#f0fdf4] text-[#166534] flex items-center justify-center mx-auto mb-3 border border-[#bbf7d0]">
+            <CheckCircle2 className="w-6 h-6" />
           </div>
-          <h4 className="text-lg font-bold text-[#0f172a] mb-1">Report Received</h4>
-          <p className="text-xs text-[#475569] max-w-sm mx-auto mb-6 leading-relaxed">
-            Thank you for helping maintain high academic integrity on GitNote. Our community moderation team will review &quot;{resourceTitle}&quot; within 24 hours.
+          <h4 className="font-editorial text-base font-semibold text-[#18181b] mb-1">Notice Submitted</h4>
+          <p className="text-xs text-[#71717a] max-w-sm mx-auto mb-5 leading-relaxed">
+            Thank you for maintaining catalog accuracy. Institutional moderators will examine &quot;{resourceTitle}&quot;.
           </p>
-          <Button variant="primary" onClick={handleReset} className="w-full">
+          <Button variant="primary" size="sm" onClick={handleReset} className="w-full">
             Done
           </Button>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="p-3 bg-[#fffbeb] border border-[#fde68a] rounded-xl flex items-start gap-2.5 text-xs text-[#b45309]">
-            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-[#f59e0b]" />
+          <div className="p-3 bg-[#fef9ee] border border-[#fde68a] rounded-md flex items-start gap-2.5 text-xs text-[#92400e]">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-[#b45309]" />
             <div>
-              <span className="font-semibold block text-[#92400e]">Academic Standards Review</span>
-              Reporting flags documents with broken scans, incorrect syllabus mappings, or copyright infringement.
+              <span className="font-semibold block text-[#92400e]">Academic Catalog Integrity</span>
+              Reports flag corrupted scans, inaccurate course mappings, or copyright infringement.
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#0f172a] mb-2">
-              Select Reason for Concern:
+            <label className="block text-[11px] font-mono uppercase tracking-wider text-[#71717a] mb-2">
+              Reason for Notice:
             </label>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {REPORT_REASONS.map((reason) => (
                 <label
                   key={reason.id}
-                  className={`flex items-start gap-2.5 p-3 rounded-xl border text-xs cursor-pointer transition-all ${
+                  className={`flex items-start gap-2.5 p-2.5 rounded-md border text-xs cursor-pointer transition-colors ${
                     selectedReason === reason.id
-                      ? 'border-[#4f46e5] bg-[#eef2ff] text-[#4338ca] font-semibold'
-                      : 'border-[#cbd5e1] hover:bg-[#f8fafc] text-slate-700'
+                      ? 'border-[#1d3b64] bg-[#eef3f8] text-[#18181b] font-medium'
+                      : 'border-[#e5e2db] hover:bg-[#fbfaf8] text-[#52525b]'
                   }`}
                 >
                   <input
@@ -99,43 +99,43 @@ export const ReportModal: React.FC<ReportModalProps> = ({
                     name="reportReason"
                     value={reason.id}
                     checked={selectedReason === reason.id}
-                    onChange={(e) => setSelectedReason(e.target.value)}
-                    className="w-4 h-4 mt-0.5 text-[#4f46e5] border-slate-300 focus:ring-[#4f46e5]"
+                    onChange={() => setSelectedReason(reason.id)}
+                    className="mt-0.5 text-[#1d3b64] focus:ring-[#1d3b64]"
                   />
                   <div>
-                    <span className="block">{reason.label}</span>
-                    <span className="text-[11px] text-slate-500 font-normal">{reason.description}</span>
+                    <span className="block font-medium">{reason.label}</span>
+                    <span className="text-[11px] text-[#71717a]">{reason.description}</span>
                   </div>
                 </label>
               ))}
             </div>
-            {error && <p className="text-xs text-rose-600 mt-1.5 font-medium">{error}</p>}
+            {error && <p className="text-xs text-[#991b1b] mt-1.5">{error}</p>}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#0f172a] mb-1">
-              Additional Context (Optional):
+            <label className="block text-[11px] font-mono uppercase tracking-wider text-[#71717a] mb-1">
+              Additional Observations (Optional)
             </label>
             <textarea
+              rows={3}
               value={details}
               onChange={(e) => setDetails(e.target.value)}
               placeholder="Provide specific page numbers or syllabus discrepancies..."
-              rows={3}
-              className="w-full p-3 bg-white border border-[#cbd5e1] rounded-xl text-xs text-[#0f172a] placeholder-slate-400 focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100 outline-none transition-all"
+              className="w-full text-xs p-2.5 rounded-md border border-[#e5e2db] bg-white outline-none focus:border-[#1d3b64] focus:ring-1 focus:ring-[#1d3b64] transition-colors resize-y"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#f1f5f9]">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#eeece6]">
             <Button type="button" variant="outline" size="sm" onClick={handleReset}>
               Cancel
             </Button>
             <Button
               type="submit"
-              variant="danger"
+              variant="primary"
               size="sm"
               isLoading={isSubmitting}
             >
-              Submit Report
+              Submit Notice
             </Button>
           </div>
         </form>

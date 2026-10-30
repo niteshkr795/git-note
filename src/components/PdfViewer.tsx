@@ -53,9 +53,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
-  // Cached PDF.js document instance
   const pdfDocRef = useRef<any>(null);
-
   const isPdf = fileFormat.toUpperCase() === 'PDF';
 
   // 1. Load PDF document
@@ -146,7 +144,6 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
         const ctx = canvas.getContext('2d', { alpha: false });
         if (!ctx) return;
 
-        // White background for transparent pages
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -160,49 +157,67 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
         await task.promise;
         setIsRenderingPage(false);
       } catch (err: any) {
-        if (err?.name === 'RenderingCancelledException') {
-          // Expected when rapidly switching pages/zoom
-          return;
+        if (err?.name !== 'RenderingCancelledException') {
+          console.error('[GitNote PDF Viewer] Error rendering page:', err);
         }
-        console.error('[GitNote PDF Viewer] Page render error:', err);
         setIsRenderingPage(false);
       }
     },
     [scale, rotation]
   );
 
+  // Trigger page render when page, scale, or rotation changes
   useEffect(() => {
-    if (!isLoadingDoc && !error && pdfDocRef.current) {
+    if (!isLoadingDoc && pdfDocRef.current && currentPage > 0) {
       renderPage(currentPage);
       setPageInput(String(currentPage));
     }
-  }, [currentPage, renderPage, isLoadingDoc, error]);
+  }, [currentPage, scale, rotation, isLoadingDoc, renderPage]);
 
-  // Navigation handlers
+  // Keyboard Navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+        if (currentPage < numPages) {
+          e.preventDefault();
+          setCurrentPage((p) => p + 1);
+        }
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        if (currentPage > 1) {
+          e.preventDefault();
+          setCurrentPage((p) => p - 1);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentPage, numPages]);
+
   const handlePrevPage = () => {
-    setCurrentPage((p) => Math.max(1, p - 1));
+    if (currentPage > 1) setCurrentPage((p) => p - 1);
   };
 
   const handleNextPage = () => {
-    setCurrentPage((p) => Math.min(numPages || 1, p + 1));
+    if (currentPage < numPages) setCurrentPage((p) => p + 1);
   };
 
   const handlePageInputSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const p = parseInt(pageInput, 10);
-    if (!isNaN(p) && p >= 1 && p <= (numPages || 1)) {
-      setCurrentPage(p);
+    const parsed = parseInt(pageInput, 10);
+    if (!isNaN(parsed) && parsed >= 1 && parsed <= numPages) {
+      setCurrentPage(parsed);
     } else {
       setPageInput(String(currentPage));
     }
   };
 
-  // Zoom handlers
   const zoomIn = () => setScale((s) => Math.min(2.5, +(s + 0.2).toFixed(1)));
   const zoomOut = () => setScale((s) => Math.max(0.6, +(s - 0.2).toFixed(1)));
   const rotate = () => setRotation((r) => (r + 90) % 360);
 
-  // Fullscreen handlers
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
     if (!document.fullscreenElement) {
@@ -218,31 +233,30 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   if (!isPdf) {
     return (
       <div
-        className={`bg-slate-900 rounded-2xl border border-slate-800 p-8 sm:p-12 text-center text-white flex flex-col items-center justify-center min-h-[420px] ${className}`}
+        className={`bg-[#18181b] rounded-md border border-[#27272a] p-8 sm:p-12 text-center text-white flex flex-col items-center justify-center min-h-[380px] ${className}`}
       >
-        <div className="w-16 h-16 rounded-2xl bg-[#4f46e5]/10 border border-[#4f46e5]/20 flex items-center justify-center text-[#818cf8] mb-4 shadow-inner">
+        <div className="w-12 h-12 rounded bg-[#27272a] border border-[#3f3f46] flex items-center justify-center text-[#d4d4d8] mb-3">
           {fileFormat.toUpperCase() === 'ZIP' ? (
-            <FolderArchive className="w-8 h-8" />
+            <FolderArchive className="w-6 h-6" />
           ) : fileFormat.toUpperCase() === 'DOCX' ? (
-            <FileText className="w-8 h-8" />
+            <FileText className="w-6 h-6" />
           ) : (
-            <FileCode className="w-8 h-8" />
+            <FileCode className="w-6 h-6" />
           )}
         </div>
-        <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20 mb-2">
+        <span className="text-[11px] font-mono uppercase tracking-wider text-[#a1a1aa] bg-[#27272a] px-2.5 py-0.5 rounded border border-[#3f3f46] mb-2">
           {fileFormat.toUpperCase()} Document
         </span>
-        <h3 className="text-xl font-bold text-white max-w-md line-clamp-2">{title}</h3>
-        <p className="text-xs text-slate-400 mt-2 max-w-sm">
-          In-browser rendering is optimized for PDFs. Download this file ({fileSize}) to open it in
-          your native office editor.
+        <h3 className="font-editorial text-lg font-medium text-white max-w-md line-clamp-2">{title}</h3>
+        <p className="text-xs text-[#a1a1aa] mt-1.5 max-w-sm leading-relaxed">
+          In-browser preview is optimized for PDF documents. Download this file ({fileSize}) to open it in your desktop office editor.
         </p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
           {onDownload && (
             <Button
               variant="primary"
-              size="md"
-              leftIcon={<Download className="w-4 h-4" />}
+              size="sm"
+              leftIcon={<Download className="w-3.5 h-3.5" />}
               onClick={onDownload}
             >
               Download {fileFormat.toUpperCase()} ({fileSize})
@@ -253,7 +267,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors border border-slate-700"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium text-[#d4d4d8] hover:text-white bg-[#27272a] hover:bg-[#3f3f46] transition-colors border border-[#3f3f46]"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               <span>Direct Link</span>
@@ -267,28 +281,27 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`bg-slate-950 rounded-2xl border border-slate-800 flex flex-col overflow-hidden shadow-2xl relative select-none ${className}`}
+      className={`bg-[#18181b] rounded-md border border-[#27272a] flex flex-col overflow-hidden shadow-sm relative select-none ${className}`}
     >
       {/* Viewer Top Toolbar */}
-      <div className="bg-slate-900/90 backdrop-blur-md px-3 sm:px-5 py-2.5 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300 z-10">
+      <div className="bg-[#202023] px-3 sm:px-4 py-2 border-b border-[#2e2e32] flex flex-wrap items-center justify-between gap-2.5 text-xs text-[#d4d4d8] z-10">
         {/* Document Title / Status */}
         <div className="flex items-center gap-2 min-w-0 max-w-[200px] sm:max-w-xs">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#4f46e5] shrink-0 animate-pulse" />
-          <span className="font-medium text-slate-200 truncate" title={title}>
+          <span className="font-medium text-white truncate text-xs" title={title}>
             {title}
           </span>
         </div>
 
         {/* Page Navigation Controls */}
-        <div className="flex items-center gap-1.5 bg-slate-800/80 px-2 py-1 rounded-xl border border-slate-700">
+        <div className="flex items-center gap-1 bg-[#18181b] px-1.5 py-0.5 rounded border border-[#2e2e32]">
           <button
             type="button"
             disabled={currentPage <= 1 || isLoadingDoc}
             onClick={handlePrevPage}
-            className="p-1 rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
-            title="Previous Page (Left Arrow)"
+            className="p-1 rounded hover:bg-[#27272a] text-[#a1a1aa] hover:text-white disabled:opacity-30 transition-colors cursor-pointer"
+            title="Previous Page (←)"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-3.5 h-3.5" />
           </button>
 
           <form onSubmit={handlePageInputSubmit} className="flex items-center gap-1">
@@ -298,160 +311,153 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
               disabled={isLoadingDoc || numPages === 0}
               onChange={(e) => setPageInput(e.target.value)}
               onBlur={() => setPageInput(String(currentPage))}
-              className="w-8 text-center bg-slate-900 border border-slate-700 rounded text-xs font-mono text-white py-0.5 focus:outline-none focus:border-indigo-500"
+              className="w-7 text-center bg-[#27272a] border border-[#3f3f46] rounded text-[11px] font-mono text-white py-0.5 focus:outline-none focus:border-[#1d3b64]"
             />
-            <span className="text-slate-400 font-mono text-xs">/ {numPages || 1}</span>
+            <span className="text-[#a1a1aa] font-mono text-[11px]">/ {numPages || 1}</span>
           </form>
 
           <button
             type="button"
             disabled={currentPage >= numPages || isLoadingDoc}
             onClick={handleNextPage}
-            className="p-1 rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
-            title="Next Page (Right Arrow)"
+            className="p-1 rounded hover:bg-[#27272a] text-[#a1a1aa] hover:text-white disabled:opacity-30 transition-colors cursor-pointer"
+            title="Next Page (→)"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
         {/* Zoom & View Controls */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          {/* Zoom Out */}
+        <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={zoomOut}
             disabled={isLoadingDoc || scale <= 0.6}
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white disabled:opacity-30 transition-colors cursor-pointer"
+            className="p-1 rounded hover:bg-[#27272a] text-[#a1a1aa] hover:text-white disabled:opacity-30 transition-colors cursor-pointer"
             title="Zoom Out"
           >
-            <ZoomOut className="w-4 h-4" />
+            <ZoomOut className="w-3.5 h-3.5" />
           </button>
 
-          {/* Zoom Label / Preset */}
-          <span className="font-mono text-xs text-slate-300 min-w-[42px] text-center">
+          <span className="font-mono text-[11px] text-[#a1a1aa] min-w-[36px] text-center">
             {Math.round(scale * 100)}%
           </span>
 
-          {/* Zoom In */}
           <button
             type="button"
             onClick={zoomIn}
             disabled={isLoadingDoc || scale >= 2.5}
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white disabled:opacity-30 transition-colors cursor-pointer"
+            className="p-1 rounded hover:bg-[#27272a] text-[#a1a1aa] hover:text-white disabled:opacity-30 transition-colors cursor-pointer"
             title="Zoom In"
           >
-            <ZoomIn className="w-4 h-4" />
+            <ZoomIn className="w-3.5 h-3.5" />
           </button>
 
-          {/* Rotate */}
           <button
             type="button"
             onClick={rotate}
             disabled={isLoadingDoc}
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white disabled:opacity-30 transition-colors cursor-pointer"
-            title="Rotate Clockwise"
+            className="p-1 rounded hover:bg-[#27272a] text-[#a1a1aa] hover:text-white disabled:opacity-30 transition-colors cursor-pointer"
+            title="Rotate"
           >
-            <RotateCw className="w-4 h-4" />
+            <RotateCw className="w-3.5 h-3.5" />
           </button>
 
-          {/* Fullscreen */}
           <button
             type="button"
             onClick={toggleFullscreen}
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer hidden sm:inline-flex"
-            title={isFullscreen ? 'Exit Fullscreen' : 'View Fullscreen'}
+            className="p-1 rounded hover:bg-[#27272a] text-[#a1a1aa] hover:text-white transition-colors cursor-pointer hidden sm:inline-flex"
+            title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
           >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
 
-          {/* External Tab View */}
           {url && (
             <a
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
-              title="Open in Browser Native Tab"
+              className="p-1 rounded hover:bg-[#27272a] text-[#a1a1aa] hover:text-white transition-colors"
+              title="Open in Native Browser Tab"
             >
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink className="w-3.5 h-3.5" />
             </a>
           )}
 
-          {/* Separate Direct Download Button */}
           {onDownload && (
             <button
               type="button"
               onClick={onDownload}
-              className="ml-1 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-sm transition-colors cursor-pointer"
-              title="Download Original PDF"
+              className="ml-1 inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#27272a] hover:bg-[#3f3f46] text-white text-xs font-medium transition-colors border border-[#3f3f46] cursor-pointer"
+              title="Download PDF Document"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Download</span>
+              <Download className="w-3 h-3" />
+              <span>Download</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Main Canvas Scroll Viewport */}
-      <div className="flex-1 overflow-auto bg-slate-900/60 p-4 sm:p-8 flex items-center justify-center min-h-[460px] max-h-[75vh]">
+      <div className="flex-1 overflow-auto bg-[#121214] p-4 sm:p-6 flex items-center justify-center min-h-[440px] max-h-[72vh]">
         {isLoadingDoc ? (
-          <div className="flex flex-col items-center justify-center p-12 text-center text-slate-400 space-y-3">
-            <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
-            <p className="text-xs font-medium">Decrypting and loading PDF document...</p>
+          <div className="flex flex-col items-center justify-center p-12 text-center text-[#a1a1aa] space-y-2.5">
+            <Loader2 className="w-6 h-6 text-[#1d3b64] animate-spin" />
+            <p className="text-xs font-mono">Initializing document reader...</p>
           </div>
         ) : error ? (
-          <div className="bg-slate-900 border border-rose-500/30 rounded-2xl p-6 sm:p-8 max-w-md text-center space-y-4">
-            <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
-              <AlertTriangle className="w-6 h-6" />
+          <div className="bg-[#18181b] border border-[#3f3f46] rounded-md p-6 max-w-sm text-center space-y-3">
+            <div className="w-10 h-10 rounded bg-[#fef2f2]/10 border border-[#fecaca]/20 text-[#f87171] flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-base font-bold text-white">Preview Unavailable</h4>
-              <p className="text-xs text-slate-400 mt-1">{error}</p>
+              <h4 className="text-sm font-medium text-white">Preview Unavailable</h4>
+              <p className="text-xs text-[#a1a1aa] mt-1">{error}</p>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => {
                   setError(null);
                   setIsLoadingDoc(true);
                 }}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-2.5 py-1 rounded bg-[#27272a] hover:bg-[#3f3f46] text-white text-xs font-medium inline-flex items-center gap-1.5 transition-colors cursor-pointer border border-[#3f3f46]"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className="w-3 h-3" />
                 <span>Retry</span>
               </button>
               {onDownload && (
                 <Button
                   variant="primary"
                   size="sm"
-                  leftIcon={<Download className="w-3.5 h-3.5" />}
+                  leftIcon={<Download className="w-3 h-3" />}
                   onClick={onDownload}
                 >
-                  Download File Directly
+                  Download File
                 </Button>
               )}
             </div>
           </div>
         ) : (
-          <div className="relative shadow-2xl rounded-lg overflow-hidden transition-all duration-150">
+          <div className="relative shadow-md rounded overflow-hidden">
             {isRenderingPage && (
-              <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center text-white text-xs font-medium z-10">
-                <Loader2 className="w-5 h-5 text-indigo-400 animate-spin mr-2" />
-                <span>Rendering Page {currentPage}...</span>
+              <div className="absolute inset-0 bg-[#18181b]/50 backdrop-blur-xs flex items-center justify-center text-white text-xs z-10">
+                <Loader2 className="w-4 h-4 text-white animate-spin mr-1.5" />
+                <span>Rendering page {currentPage}...</span>
               </div>
             )}
-            <canvas ref={canvasRef} className="block bg-white mx-auto shadow-md" />
+            <canvas ref={canvasRef} className="block bg-white mx-auto shadow" />
           </div>
         )}
       </div>
 
       {/* Viewer Bottom Info Bar */}
-      <div className="bg-slate-900/90 px-4 py-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+      <div className="bg-[#202023] px-3 sm:px-4 py-1.5 border-t border-[#2e2e32] flex items-center justify-between text-[11px] text-[#a1a1aa]">
         <span className="font-mono">
           Page {currentPage} of {numPages || 1} • {fileFormat} • {fileSize}
         </span>
-        <span className="text-slate-500 hidden sm:inline">
-          Use ← / → arrow keys or zoom controls to inspect document
+        <span className="text-[#71717a] hidden sm:inline">
+          Use ← / → keys to flip pages
         </span>
       </div>
     </div>

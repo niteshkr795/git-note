@@ -34,88 +34,76 @@ export default function OfflinePage() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200/80 p-8 sm:p-10 shadow-[0_20px_40px_-15px_rgba(15,23,42,0.07)] text-center space-y-6">
-        {/* Offline Icon Illustration */}
-        <div className="relative mx-auto w-20 h-20">
-          <div className="w-20 h-20 rounded-3xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shadow-inner">
-            <WifiOff className="w-9 h-9" />
-          </div>
-          <div
-            className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold ${
-              isOnline ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'
-            }`}
-          >
-            {isOnline ? '✓' : '!'}
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 bg-[#fbfaf8]">
+      <div className="max-w-md w-full bg-white rounded-md border border-[#e5e2db] p-8 sm:p-10 shadow-2xs text-center space-y-5">
+        {/* Offline Icon */}
+        <div className="relative mx-auto w-14 h-14">
+          <div className="w-14 h-14 rounded-md bg-[#fef2f2] border border-[#fecaca] flex items-center justify-center text-[#991b1b]">
+            <WifiOff className="w-7 h-7" />
           </div>
         </div>
 
         {/* Status Header */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {isOnline ? (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-mono bg-[#f0fdf4] text-[#166534] border border-[#bbf7d0]">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Internet Connection Restored</span>
+              <span>Connection Restored</span>
             </div>
           ) : (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-              <span>No Internet Connection</span>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-mono bg-[#fef2f2] text-[#991b1b] border border-[#fecaca]">
+              <span>Offline Mode</span>
             </div>
           )}
 
-          <h1 className="text-2xl font-extrabold text-[#0f172a] tracking-tight">
-            {isOnline ? 'You are back online!' : "You're Currently Offline"}
+          <h1 className="font-editorial text-2xl font-semibold text-[#18181b] tracking-tight">
+            {isOnline ? 'You are back online' : 'Offline Academic Mode'}
           </h1>
 
-          <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#71717a] leading-relaxed">
             {isOnline
-              ? 'Your device re-established an internet connection. Reload the page to access all GitNote features.'
-              : 'GitNote loaded the core app shell from your device cache. Live searching, account authentication, and uploading study resources require an active internet connection.'}
+              ? 'Your device re-established an internet connection. Reload the page to access live repository records.'
+              : 'GitNote loaded the core library cache from your device. Live database querying and uploading require an active network connection.'}
           </p>
         </div>
 
         {/* Feature Availability Grid */}
-        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 text-left space-y-2.5 text-xs">
-          <span className="font-bold text-slate-700 block uppercase tracking-wider text-[10px]">
-            Offline Availability:
+        <div className="bg-[#fbfaf8] rounded-md p-3.5 border border-[#e5e2db] text-left space-y-2 text-xs">
+          <span className="font-mono text-[10px] uppercase tracking-wider text-[#71717a] block">
+            Offline Cache Status:
           </span>
           <div className="space-y-1.5">
-            <div className="flex items-center gap-2 text-slate-600">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>App shell navigation & cached pages</span>
+            <div className="flex items-center gap-2 text-[#52525b]">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#166534] shrink-0" />
+              <span>App shell and cached repository pages available</span>
             </div>
-            <div className="flex items-center gap-2 text-slate-400">
-              <ShieldAlert className="w-4 h-4 text-amber-500 shrink-0" />
-              <span>Live database search (requires connection)</span>
+            <div className="flex items-center gap-2 text-[#71717a]">
+              <ShieldAlert className="w-3.5 h-3.5 text-[#b45309] shrink-0" />
+              <span>Live database search requires connection</span>
             </div>
-            <div className="flex items-center gap-2 text-slate-400">
-              <ShieldAlert className="w-4 h-4 text-amber-500 shrink-0" />
-              <span>Sign in & document upload (requires connection)</span>
+            <div className="flex items-center gap-2 text-[#71717a]">
+              <ShieldAlert className="w-3.5 h-3.5 text-[#b45309] shrink-0" />
+              <span>Document deposits require connection</span>
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="space-y-2.5 pt-2">
+        <div className="space-y-2 pt-1">
           <Button
             variant="primary"
-            size="lg"
+            size="md"
+            className="w-full"
             onClick={handleRetry}
-            leftIcon={<RefreshCw className={`w-4 h-4 ${isChecking ? 'animate-spin' : ''}`} />}
-            className="w-full shadow-sm font-semibold"
+            isLoading={isChecking}
+            leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
           >
-            {isChecking ? 'Reconnecting...' : 'Check Connection & Retry'}
+            Retry Connection
           </Button>
 
-          <Link href="/" className="block w-full">
-            <Button
-              variant="outline"
-              size="md"
-              leftIcon={<Home className="w-4 h-4" />}
-              className="w-full text-slate-700 hover:text-slate-900"
-            >
-              Return to Cached Home
+          <Link href="/" className="block">
+            <Button variant="outline" size="md" className="w-full" leftIcon={<Home className="w-3.5 h-3.5" />}>
+              Return to Library Home
             </Button>
           </Link>
         </div>
