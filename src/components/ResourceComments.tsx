@@ -548,24 +548,6 @@ export const ResourceComments: React.FC<ResourceCommentsProps> = ({
         </button>
       </div>
 
-      {/* Database Schema Setup Notice (Only shown if table is not yet created in Supabase) */}
-      {tableMissingNotice && (
-        <div className="rounded-md border border-[#fde68a] bg-[#fef9ee] p-3.5 text-xs text-[#92400e] flex items-start gap-2.5">
-          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-[#b45309]" />
-          <div className="space-y-1">
-            <strong className="font-semibold block text-[#78350f]">
-              Supabase Table Setup Required:
-            </strong>
-            <p>
-              The cloud table <code className="font-mono text-[11px] bg-[#fef3c7] px-1 py-0.5 rounded">public.resource_comments</code> is not yet applied in the Supabase schema cache. To persist comments permanently across devices, run the migration file <code className="font-mono text-[11px] bg-[#fef3c7] px-1 py-0.5 rounded">supabase/migrations/20261030000000_resource_comments.sql</code> in your Supabase SQL Editor.
-            </p>
-            <p className="text-[11px] text-[#b45309]">
-              Session discussion is active for preview and testing.
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Submission Box */}
       {user ? (
         <form onSubmit={handlePostComment} className="space-y-3">
