@@ -121,9 +121,9 @@ function ProfileContent() {
   const handleSaveAvatar = async (newAvatarUrl: string) => {
     const res = await updateUserProfile({ avatar: newAvatarUrl });
     if (res.success) {
-      addToast('success', 'Profile Photo Updated', 'Your student profile photo has been updated.');
+      addToast('success', 'Profile Avatar Updated', 'Your student cartoon avatar has been updated.');
     } else {
-      addToast('error', 'Update Failed', res.error || 'Failed to update profile photo.');
+      addToast('error', 'Update Failed', res.error || 'Failed to update profile avatar.');
     }
   };
 
@@ -139,8 +139,8 @@ function ProfileContent() {
                 type="button"
                 onClick={() => setIsAvatarModalOpen(true)}
                 className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-tr from-[#4f46e5] via-[#7c3aed] to-[#38bdf8] flex items-center justify-center text-2xl font-black text-white shadow-sm ring-4 ring-indigo-50 overflow-hidden relative cursor-pointer focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all active:scale-95 text-left"
-                title="Click to edit profile picture"
-                aria-label="Click to edit profile picture"
+                title="Click to change profile avatar"
+                aria-label="Click to change profile avatar"
               >
                 {displayAvatar ? (
                   <img
@@ -175,8 +175,8 @@ function ProfileContent() {
                   setIsAvatarModalOpen(true);
                 }}
                 className="absolute -top-1.5 -right-1.5 bg-white hover:bg-indigo-50 text-[#4f46e5] p-1.5 rounded-full shadow-md border border-slate-200 hover:scale-110 active:scale-95 transition-all cursor-pointer z-10"
-                title="Change Profile Picture"
-                aria-label="Change Profile Picture"
+                title="Change Profile Avatar"
+                aria-label="Change Profile Avatar"
               >
                 <Camera className="w-3.5 h-3.5" />
               </button>
@@ -380,8 +380,8 @@ function ProfileContent() {
                 )}
               </div>
               <div>
-                <span className="block text-xs font-bold text-[#0f172a]">Profile Photo</span>
-                <span className="text-[11px] text-slate-500">Upload or choose a student avatar</span>
+                <span className="block text-xs font-bold text-[#0f172a]">Profile Avatar</span>
+                <span className="text-[11px] text-slate-500">Choose a cartoon avatar (men, boys, girls)</span>
               </div>
             </div>
             <Button
@@ -394,7 +394,7 @@ function ProfileContent() {
                 setIsAvatarModalOpen(true);
               }}
             >
-              Change Photo
+              Change Avatar
             </Button>
           </div>
 

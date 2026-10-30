@@ -186,6 +186,15 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Synchronize authenticated user profile with Supabase and localStorage
   useEffect(() => {
+    const cleanCartoonAvatar = (url: string | undefined | null): string => {
+      if (!url) return '/avatars/boy-1.svg';
+      // Automatically migrate legacy human Unsplash photos to cartoon avatar
+      if (typeof url === 'string' && url.includes('images.unsplash.com')) {
+        return '/avatars/boy-1.svg';
+      }
+      return url;
+    };
+
     const loadProfile = async () => {
       // 1. Try Supabase if authenticated
       if (user && isSupabaseConfigured) {
@@ -202,7 +211,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               id: user.id,
               name: data.full_name || user.user_metadata?.full_name || prev.name,
               email: user.email || prev.email,
-              avatar: data.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.avatar || prev.avatar,
+              avatar: cleanCartoonAvatar(data.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.avatar || prev.avatar),
               college: data.college || user.user_metadata?.college || prev.college,
               branch: data.branch || user.user_metadata?.branch || prev.branch,
               semester: (data.semester || user.user_metadata?.semester || prev.semester) as any,
@@ -233,7 +242,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           id: user.id,
           name: user.user_metadata?.full_name || user.email?.split('@')[0] || prev.name,
           email: user.email || prev.email,
-          avatar: user.user_metadata?.avatar_url || user.user_metadata?.avatar || prev.avatar,
+          avatar: cleanCartoonAvatar(user.user_metadata?.avatar_url || user.user_metadata?.avatar || prev.avatar),
           college: user.user_metadata?.college || prev.college,
           branch: user.user_metadata?.branch || prev.branch,
           semester: (user.user_metadata?.semester || prev.semester) as any,
@@ -244,6 +253,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           const saved = typeof window !== 'undefined' ? localStorage.getItem('gitnote_user_profile') : null;
           if (saved) {
             const parsed = JSON.parse(saved);
+            if (parsed.avatar) parsed.avatar = cleanCartoonAvatar(parsed.avatar);
             setUserProfile((prev) => ({ ...prev, ...parsed }));
           }
         } catch {
@@ -317,7 +327,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           // CRITICAL: NEVER store base64 data URLs in auth metadata!
           // Supabase SSR encodes user_metadata directly into the JWT session cookie.
           // Base64 strings exceed the 16KB cookie header limit and cause HTTP 494 REQUEST_HEADER_TOO_LARGE!
-          const isSafeUrl = typeof updates.avatar === 'string' && (updates.avatar.startsWith('http://') || updates.avatar.startsWith('https://'));
+          const isSafeUrl = typeof updates.avatar === 'string' && (updates.avatar.startsWith('http://') || updates.avatar.startsWith('https://') || updates.avatar.startsWith('/'));
           const safeAvatar = isSafeUrl ? updates.avatar : (updates.avatar === '' ? '' : null);
 
           await supabase.auth.updateUser({

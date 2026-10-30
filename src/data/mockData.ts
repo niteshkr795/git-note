@@ -179,7 +179,7 @@ export const MOCK_USER_PROFILE: UserProfile = {
   id: 'usr-1',
   name: 'Aarav Sharma',
   email: 'aarav.sharma@srmcem.ac.in',
-  avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80',
+  avatar: '/avatars/boy-1.svg',
   avatarInitials: 'AS',
   college: 'Shri Ramswaroop Memorial College of Engineering and Management (SRMCEM)',
   branch: 'Computer Science & Engineering',

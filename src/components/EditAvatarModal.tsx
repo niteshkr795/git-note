@@ -13,50 +13,169 @@ import {
   AlertCircle,
   ShieldCheck,
   RefreshCw,
+  Shuffle,
+  Users,
+  Smile,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
-export const PRESET_AVATARS = [
+export interface PresetAvatar {
+  id: string;
+  category: 'men' | 'boys' | 'girls';
+  label: string;
+  url: string;
+}
+
+export const PRESET_AVATARS: PresetAvatar[] = [
+  // Men (Adult Men / Mentors / Seniors)
   {
-    id: 'preset-1',
-    label: 'Student Developer',
-    url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80',
+    id: 'preset-men-1',
+    category: 'men',
+    label: 'Senior Mentor',
+    url: '/avatars/men-1.svg',
   },
   {
-    id: 'preset-2',
-    label: 'Engineering Student',
-    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+    id: 'preset-men-2',
+    category: 'men',
+    label: 'Tech Lead',
+    url: '/avatars/men-2.svg',
   },
   {
-    id: 'preset-3',
-    label: 'Tech Creator',
-    url: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=400&auto=format&fit=crop&q=80',
+    id: 'preset-men-3',
+    category: 'men',
+    label: 'Code Architect',
+    url: '/avatars/men-3.svg',
   },
   {
-    id: 'preset-4',
-    label: 'Computer Science Lead',
-    url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=80',
+    id: 'preset-men-4',
+    category: 'men',
+    label: 'Systems Specialist',
+    url: '/avatars/men-4.svg',
   },
   {
-    id: 'preset-5',
-    label: 'Researcher',
-    url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
+    id: 'preset-men-5',
+    category: 'men',
+    label: 'Research Scholar',
+    url: '/avatars/men-5.svg',
   },
   {
-    id: 'preset-6',
-    label: 'Campus Scholar',
-    url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format&fit=crop&q=80',
+    id: 'preset-men-6',
+    category: 'men',
+    label: 'Data Engineer',
+    url: '/avatars/men-6.svg',
   },
   {
-    id: 'preset-7',
-    label: 'Open Source Contributor',
-    url: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=400&auto=format&fit=crop&q=80',
+    id: 'preset-men-7',
+    category: 'men',
+    label: 'DevOps Lead',
+    url: '/avatars/men-7.svg',
   },
   {
-    id: 'preset-8',
-    label: 'AI & Data Explorer',
-    url: 'https://images.unsplash.com/photo-1628157582853-a796fa650a6a?w=400&auto=format&fit=crop&q=80',
+    id: 'preset-men-8',
+    category: 'men',
+    label: 'Project Manager',
+    url: '/avatars/men-8.svg',
+  },
+
+  // Boys (Students / College Guys / Hackers)
+  {
+    id: 'preset-boy-1',
+    category: 'boys',
+    label: 'Campus Coder',
+    url: '/avatars/boy-1.svg',
+  },
+  {
+    id: 'preset-boy-2',
+    category: 'boys',
+    label: 'Algorist Boy',
+    url: '/avatars/boy-2.svg',
+  },
+  {
+    id: 'preset-boy-3',
+    category: 'boys',
+    label: 'CS Student',
+    url: '/avatars/boy-3.svg',
+  },
+  {
+    id: 'preset-boy-4',
+    category: 'boys',
+    label: 'Hacker Boy',
+    url: '/avatars/boy-4.svg',
+  },
+  {
+    id: 'preset-boy-5',
+    category: 'boys',
+    label: 'Fullstack Boy',
+    url: '/avatars/boy-5.svg',
+  },
+  {
+    id: 'preset-boy-6',
+    category: 'boys',
+    label: 'Freshman Boy',
+    url: '/avatars/boy-6.svg',
+  },
+  {
+    id: 'preset-boy-7',
+    category: 'boys',
+    label: 'Open Sourcer',
+    url: '/avatars/boy-7.svg',
+  },
+  {
+    id: 'preset-boy-8',
+    category: 'boys',
+    label: 'Gamer Coder',
+    url: '/avatars/boy-8.svg',
+  },
+
+  // Girls (Students / Women Tech Leads)
+  {
+    id: 'preset-girl-1',
+    category: 'girls',
+    label: 'Student Scholar',
+    url: '/avatars/girl-1.svg',
+  },
+  {
+    id: 'preset-girl-2',
+    category: 'girls',
+    label: 'UI/UX Designer',
+    url: '/avatars/girl-2.svg',
+  },
+  {
+    id: 'preset-girl-3',
+    category: 'girls',
+    label: 'Frontend Specialist',
+    url: '/avatars/girl-3.svg',
+  },
+  {
+    id: 'preset-girl-4',
+    category: 'girls',
+    label: 'Data Scientist',
+    url: '/avatars/girl-4.svg',
+  },
+  {
+    id: 'preset-girl-5',
+    category: 'girls',
+    label: 'Robotics Lead',
+    url: '/avatars/girl-5.svg',
+  },
+  {
+    id: 'preset-girl-6',
+    category: 'girls',
+    label: 'Cloud Architect',
+    url: '/avatars/girl-6.svg',
+  },
+  {
+    id: 'preset-girl-7',
+    category: 'girls',
+    label: 'AI Researcher',
+    url: '/avatars/girl-7.svg',
+  },
+  {
+    id: 'preset-girl-8',
+    category: 'girls',
+    label: 'Hackathon Champ',
+    url: '/avatars/girl-8.svg',
   },
 ];
 
@@ -76,7 +195,8 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
   onSaveAvatar,
 }) => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'upload' | 'presets' | 'url'>('upload');
+  const [activeTab, setActiveTab] = useState<'presets' | 'generator' | 'upload' | 'url'>('presets');
+  const [presetFilter, setPresetFilter] = useState<'all' | 'men' | 'boys' | 'girls'>('all');
   const [selectedAvatar, setSelectedAvatar] = useState<string>(currentAvatar);
   const [customUrlInput, setCustomUrlInput] = useState<string>('');
   const [urlPreviewError, setUrlPreviewError] = useState<string | null>(null);
@@ -85,14 +205,40 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Cartoon Generator state
+  const [genCategory, setGenCategory] = useState<'men' | 'boys' | 'girls'>('boys');
+  const [genSeed, setGenSeed] = useState<string>('');
+
   // Sync current avatar when modal opens
   useEffect(() => {
     if (isOpen) {
       setSelectedAvatar(currentAvatar);
       setUrlPreviewError(null);
       setCustomUrlInput('');
+      setGenSeed(displayName || `Student-${Math.floor(Math.random() * 1000)}`);
     }
-  }, [isOpen, currentAvatar]);
+  }, [isOpen, currentAvatar, displayName]);
+
+  // Compute live generated cartoon URL
+  const getGeneratedAvatarUrl = (category: 'men' | 'boys' | 'girls', seed: string) => {
+    const safeSeed = encodeURIComponent(seed.trim() || 'GitNoteStudent');
+    if (category === 'men') {
+      return `https://api.dicebear.com/9.x/avataaars/svg?seed=${safeSeed}&facialHairProbability=100&clothing=blazerAndShirt,collarAndSweater,shirtCrewNeck`;
+    }
+    if (category === 'girls') {
+      return `https://api.dicebear.com/9.x/avataaars/svg?seed=${safeSeed}&facialHairProbability=0&top=longButNotTooLong,straight02,curly,bun,bob,straightAndStrand,bigHair,curvy`;
+    }
+    // boys
+    return `https://api.dicebear.com/9.x/avataaars/svg?seed=${safeSeed}&facialHairProbability=0&clothing=hoodie,graphicShirt,shirtCrewNeck`;
+  };
+
+  const currentGeneratedUrl = getGeneratedAvatarUrl(genCategory, genSeed);
+
+  // Filter presets based on selected category
+  const filteredPresets = PRESET_AVATARS.filter((preset) => {
+    if (presetFilter === 'all') return true;
+    return preset.category === presetFilter;
+  });
 
   // Client-side image crop to 1:1 square & upload to Supabase storage for a lightweight public URL
   const processImageFile = (file: File) => {
@@ -150,7 +296,7 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
                 if (error) {
                   console.warn('[GitNote] Storage upload error:', error.message);
                   alert(
-                    `Could not upload to cloud storage (${error.message}). Please create the 'avatars' public bucket in Supabase or choose one of our verified student presets.`
+                    `Could not upload to cloud storage (${error.message}). Please choose one of our cartoon avatar presets.`
                   );
                   setIsProcessing(false);
                   return;
@@ -244,13 +390,22 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
     setSelectedAvatar('');
   };
 
+  const handleRandomizeSeed = () => {
+    const randomAdjectives = ['Quick', 'Bright', 'Clever', 'Crypto', 'Cyber', 'Neon', 'Astro', 'Cosmic', 'Hyper', 'Sonic'];
+    const randomNouns = ['Coder', 'Hacker', 'Builder', 'Engineer', 'Dev', 'Scholar', 'Guru', 'Wizard', 'Ace', 'Pixel'];
+    const adj = randomAdjectives[Math.floor(Math.random() * randomAdjectives.length)];
+    const noun = randomNouns[Math.floor(Math.random() * randomNouns.length)];
+    const num = Math.floor(Math.random() * 999) + 1;
+    setGenSeed(`${adj}${noun}${num}`);
+  };
+
   const isChanged = selectedAvatar !== currentAvatar;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Edit Profile Picture"
+      title="Choose Cartoon Avatar"
       maxWidth="lg"
     >
       <div className="space-y-6">
@@ -258,18 +413,20 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
         <div className="bg-[#faf8ff] border border-[#e2e8f0] rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="relative shrink-0">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#4f46e5] via-[#7c3aed] to-[#38bdf8] flex items-center justify-center text-2xl font-black text-white shadow-md ring-4 ring-indigo-100 overflow-hidden">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#4f46e5] via-[#7c3aed] to-[#38bdf8] p-1 flex items-center justify-center shadow-md ring-4 ring-indigo-100 overflow-hidden">
                 {selectedAvatar ? (
                   <img
                     src={selectedAvatar}
                     alt={displayName}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain rounded-xl"
                     onError={() => {
                       setUrlPreviewError('Failed to load image from this URL.');
                     }}
                   />
                 ) : (
-                  <span>{(displayName || 'S').charAt(0).toUpperCase()}</span>
+                  <span className="text-2xl font-black text-white">
+                    {(displayName || 'S').charAt(0).toUpperCase()}
+                  </span>
                 )}
               </div>
               <div
@@ -285,12 +442,12 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
                 <span className="text-sm font-bold text-[#0f172a]">{displayName}</span>
                 {isChanged && (
                   <span className="text-[10px] font-semibold bg-indigo-50 text-indigo-600 border border-indigo-200 px-2 py-0.5 rounded-full">
-                    Previewing New Photo
+                    Previewing New Avatar
                   </span>
                 )}
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                {selectedAvatar ? 'Square photo formatted for GitNote profile card' : 'Default initials avatar'}
+                {selectedAvatar ? 'Cartoon avatar formatted for your GitNote profile' : 'Default initials avatar'}
               </p>
             </div>
           </div>
@@ -302,13 +459,39 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
               className="text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/80 border border-rose-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Remove Photo</span>
+              <span>Reset Avatar</span>
             </button>
           )}
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-2 border-b border-[#e2e8f0] pb-2">
+        <div className="flex flex-wrap items-center gap-2 border-b border-[#e2e8f0] pb-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab('presets')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === 'presets'
+                ? 'bg-[#4f46e5] text-white shadow-xs'
+                : 'text-slate-600 hover:text-[#0f172a] hover:bg-slate-100'
+            }`}
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Cartoon Avatars</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('generator')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === 'generator'
+                ? 'bg-[#4f46e5] text-white shadow-xs'
+                : 'text-slate-600 hover:text-[#0f172a] hover:bg-slate-100'
+            }`}
+          >
+            <Shuffle className="w-4 h-4" />
+            <span>Generate Cartoon</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setActiveTab('upload')}
@@ -320,19 +503,6 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
           >
             <UploadCloud className="w-4 h-4" />
             <span>Upload Image</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('presets')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-              activeTab === 'presets'
-                ? 'bg-[#4f46e5] text-white shadow-xs'
-                : 'text-slate-600 hover:text-[#0f172a] hover:bg-slate-100'
-            }`}
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>Student Presets</span>
           </button>
 
           <button
@@ -349,7 +519,221 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
           </button>
         </div>
 
-        {/* Tab 1: File Upload */}
+        {/* Tab 1: Presets with Men / Boys / Girls Filter */}
+        {activeTab === 'presets' && (
+          <div className="space-y-4">
+            {/* Category Filter Pills */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-slate-500">Filter Cartoon Category:</span>
+              <div className="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setPresetFilter('all')}
+                  className={`text-xs px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                    presetFilter === 'all'
+                      ? 'bg-white text-[#4f46e5] shadow-2xs font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  All ({PRESET_AVATARS.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPresetFilter('boys')}
+                  className={`text-xs px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                    presetFilter === 'boys'
+                      ? 'bg-white text-indigo-600 shadow-2xs font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  👦 Boys (8)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPresetFilter('girls')}
+                  className={`text-xs px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                    presetFilter === 'girls'
+                      ? 'bg-white text-pink-600 shadow-2xs font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  👧 Girls (8)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPresetFilter('men')}
+                  className={`text-xs px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                    presetFilter === 'men'
+                      ? 'bg-white text-blue-700 shadow-2xs font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  👨 Men (8)
+                </button>
+              </div>
+            </div>
+
+            {/* Cartoon Avatars Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-72 overflow-y-auto p-1 pr-2">
+              {filteredPresets.map((preset) => {
+                const isSelected = selectedAvatar === preset.url;
+                const categoryColor =
+                  preset.category === 'girls'
+                    ? 'bg-pink-50 text-pink-700 border-pink-200'
+                    : preset.category === 'men'
+                    ? 'bg-blue-50 text-blue-700 border-blue-200'
+                    : 'bg-indigo-50 text-indigo-700 border-indigo-200';
+
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => setSelectedAvatar(preset.url)}
+                    className={`group relative rounded-2xl overflow-hidden border-2 p-2 flex flex-col items-center gap-1.5 transition-all text-left cursor-pointer ${
+                      isSelected
+                        ? 'border-[#4f46e5] bg-indigo-50/70 shadow-sm ring-2 ring-indigo-200'
+                        : 'border-[#e2e8f0] hover:border-[#cbd5e1] hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="w-18 h-18 rounded-xl bg-gradient-to-b from-slate-50 to-indigo-50/50 p-1 overflow-hidden relative shadow-2xs flex items-center justify-center">
+                      <img
+                        src={preset.url}
+                        alt={preset.label}
+                        className="w-full h-full object-contain transition-transform group-hover:scale-110"
+                        loading="lazy"
+                      />
+                      {isSelected && (
+                        <div className="absolute inset-0 bg-[#4f46e5]/40 backdrop-blur-[0.5px] flex items-center justify-center">
+                          <div className="bg-white text-[#4f46e5] rounded-full p-1 shadow-sm">
+                            <Check className="w-4 h-4 stroke-[3]" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="w-full text-center">
+                      <span className="text-[11px] font-semibold text-slate-800 block truncate">
+                        {preset.label}
+                      </span>
+                      <span
+                        className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border capitalize inline-block mt-0.5 ${categoryColor}`}
+                      >
+                        {preset.category}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: Cartoon Generator */}
+        {activeTab === 'generator' && (
+          <div className="space-y-4 bg-slate-50 border border-slate-200 rounded-2xl p-5">
+            <div>
+              <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Generate Custom Cartoon Avatar
+              </p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Create a distinct cartoon avatar for boys, girls, or men using any character seed name.
+              </p>
+            </div>
+
+            {/* Choose Gender/Style */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Choose Character Type:</label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setGenCategory('boys')}
+                  className={`p-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    genCategory === 'boys'
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  <span>👦 Boy Student</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGenCategory('girls')}
+                  className={`p-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    genCategory === 'girls'
+                      ? 'bg-pink-600 text-white border-pink-600 shadow-2xs'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  <span>👧 Girl Student</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGenCategory('men')}
+                  className={`p-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    genCategory === 'men'
+                      ? 'bg-blue-700 text-white border-blue-700 shadow-2xs'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  <span>👨 Adult Man / Mentor</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Seed Name Input with Shuffle */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Seed Name / Keyword:</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={genSeed}
+                  onChange={(e) => setGenSeed(e.target.value)}
+                  placeholder="e.g. Alex, CyberCoder, SRMCEM"
+                  className="flex-1 text-xs p-2.5 rounded-xl border border-slate-300 bg-white outline-none focus:border-[#4f46e5] focus:ring-2 focus:ring-indigo-100"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  leftIcon={<Shuffle className="w-3.5 h-3.5" />}
+                  onClick={handleRandomizeSeed}
+                >
+                  Shuffle
+                </Button>
+              </div>
+            </div>
+
+            {/* Live Generated Preview Box */}
+            <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
+              <div className="flex items-center gap-3">
+                <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center p-1">
+                  <img
+                    src={currentGeneratedUrl}
+                    alt="Generated Cartoon"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-800">
+                    Custom {genCategory === 'boys' ? 'Boy' : genCategory === 'girls' ? 'Girl' : 'Man'} Cartoon
+                  </p>
+                  <p className="text-[11px] text-slate-400">Seed: {genSeed || 'Default'}</p>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() => setSelectedAvatar(currentGeneratedUrl)}
+              >
+                Use This Cartoon
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: File Upload */}
         {activeTab === 'upload' && (
           <div className="space-y-4">
             <div
@@ -366,7 +750,7 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/png,image/jpeg,image/webp,image/gif"
+                accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
                 onChange={handleFileChange}
                 className="hidden"
               />
@@ -380,10 +764,10 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
               </div>
 
               <p className="text-xs sm:text-sm font-bold text-[#0f172a]">
-                {isProcessing ? 'Optimizing photo...' : 'Click to upload or drag & drop'}
+                {isProcessing ? 'Optimizing avatar...' : 'Click to upload or drag & drop'}
               </p>
               <p className="text-xs text-slate-500 mt-1 max-w-sm">
-                JPEG, PNG, WEBP or GIF. Photos will be automatically centered and scaled for best display.
+                SVG, PNG, JPEG, WEBP or GIF. Images are automatically centered and cropped to a square.
               </p>
               <div className="mt-4">
                 <Button
@@ -403,51 +787,7 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
           </div>
         )}
 
-        {/* Tab 2: Presets */}
-        {activeTab === 'presets' && (
-          <div className="space-y-3">
-            <p className="text-xs text-slate-500">
-              Pick one of our verified campus student portraits:
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-64 overflow-y-auto p-1">
-              {PRESET_AVATARS.map((preset) => {
-                const isSelected = selectedAvatar === preset.url;
-                return (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() => setSelectedAvatar(preset.url)}
-                    className={`group relative rounded-2xl overflow-hidden border-2 p-1.5 flex flex-col items-center gap-1.5 transition-all text-left cursor-pointer ${
-                      isSelected
-                        ? 'border-[#4f46e5] bg-indigo-50/70 shadow-xs'
-                        : 'border-[#e2e8f0] hover:border-[#cbd5e1] hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="w-16 h-16 rounded-xl overflow-hidden relative shadow-2xs">
-                      <img
-                        src={preset.url}
-                        alt={preset.label}
-                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                      />
-                      {isSelected && (
-                        <div className="absolute inset-0 bg-[#4f46e5]/40 flex items-center justify-center">
-                          <div className="bg-white text-[#4f46e5] rounded-full p-1 shadow-sm">
-                            <Check className="w-3.5 h-3.5 stroke-[3]" />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-[11px] font-medium text-slate-700 truncate w-full text-center">
-                      {preset.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Tab 3: Direct URL */}
+        {/* Tab 4: Direct URL */}
         {activeTab === 'url' && (
           <div className="space-y-3">
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -456,7 +796,7 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
             <div className="flex gap-2">
               <input
                 type="url"
-                placeholder="https://example.com/photo.jpg"
+                placeholder="https://example.com/avatar.svg"
                 value={customUrlInput}
                 onChange={(e) => {
                   setCustomUrlInput(e.target.value);
@@ -480,7 +820,7 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
               </p>
             )}
             <p className="text-[11px] text-slate-400">
-              Supports direct URLs from GitHub avatars, Unsplash, Gravatar, or personal hosting.
+              Supports direct URLs from DiceBear, GitHub avatars, Gravatar, or personal SVG hosting.
             </p>
           </div>
         )}
@@ -503,7 +843,7 @@ export const EditAvatarModal: React.FC<EditAvatarModalProps> = ({
             onClick={handleSave}
             isLoading={isSaving}
           >
-            Save Profile Photo
+            Save Avatar
           </Button>
         </div>
       </div>
