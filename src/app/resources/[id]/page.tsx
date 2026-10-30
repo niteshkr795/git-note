@@ -440,7 +440,7 @@ function ResourceDetailsContent() {
                     {resource.uploader.name}
                   </h4>
                   {resource.uploader.verified && (
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#166534] shrink-0" title="Verified Contributor" />
+                    <span title="Verified Contributor"><CheckCircle2 className="w-3.5 h-3.5 text-[#166534] shrink-0" /></span>
                   )}
                 </div>
                 <p className="text-xs text-[#52525b] truncate">{resource.uploader.branch}</p>
